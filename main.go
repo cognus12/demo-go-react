@@ -6,6 +6,12 @@ import (
 	"net/http"
 )
 
+type ViewData struct {
+	Title string
+}
+
+var index *template.Template
+
 func loadTemplate() *template.Template {
 	t, err := template.ParseFiles("frontend/dist/index.html")
 
@@ -16,6 +22,10 @@ func loadTemplate() *template.Template {
 	}
 }
 
+func init() {
+	index = loadTemplate()
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/" {
@@ -23,9 +33,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := loadTemplate()
+	data := ViewData{Title: "Go+Vite App"}
 
-	t.Execute(w, nil)
+	index.Execute(w, data)
 }
 
 func handlerHello(w http.ResponseWriter, r *http.Request) {
