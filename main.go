@@ -27,12 +27,6 @@ func init() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-
 	data := ViewData{Title: "Go+Vite App"}
 
 	index.Execute(w, data)
