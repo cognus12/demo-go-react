@@ -8,12 +8,14 @@ import (
 
 type ViewData struct {
 	Title string
+	// Favicon string
+	Js string
 }
 
 var index *template.Template
 
 func loadTemplate() *template.Template {
-	t, err := template.ParseFiles("frontend/dist/index.html")
+	t, err := template.ParseFiles("template.html")
 
 	if err == nil {
 		return t
@@ -23,6 +25,7 @@ func loadTemplate() *template.Template {
 }
 
 func init() {
+	getManifest()
 	index = loadTemplate()
 }
 
@@ -37,7 +40,7 @@ func handlerHello(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	fs := http.FileServer(http.Dir("frontend/dist/assets"))
+	fs := http.FileServer(http.Dir("static/assets"))
 
 	http.HandleFunc("/", handler)
 	http.Handle("/assets/", http.StripPrefix("/assets/", fs))
