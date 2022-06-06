@@ -2,29 +2,27 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
 )
 
+type ChunckMap = map[string]interface{}
+type ManifestMap = map[string]ChunckMap
+
 type Chunck struct {
-	Src            string
-	File           string
-	Css            []string
-	Assets         []string
-	IsEntry        bool
-	IsDynamicEntry bool
-	Imports        []string
-	DynamicImports []string
+	Key            string
+	Src            string   `json:"src"`
+	File           string   `json:"file"`
+	Css            []string `json:"css"`
+	Assets         []string `json:"assets"`
+	IsEntry        bool     `json:"isEntry"`
+	IsDynamicEntry bool     `json:"isDynamicEntry"`
+	Imports        []string `json:"imports"`
+	DynamicImports []string `json:"dynamicImports"`
 }
-
-type manifestNode = map[string]Chunck
-
-// type ManifestData struct {
-// 	File string
-// 	CSS  []string
-// }
 
 func getManifest() {
 	manifest, err := os.Open("static/manifest.json")
@@ -33,7 +31,9 @@ func getManifest() {
 		log.Fatal("Failed to load manifest.json")
 	}
 
-	var v interface{}
+	// var v interface{}
+
+	var v ManifestMap
 
 	byteValue, _ := ioutil.ReadAll(manifest)
 
@@ -44,46 +44,100 @@ func getManifest() {
 	defer manifest.Close()
 }
 
-func processManifest(m interface{}) {
-	v := reflect.ValueOf(m)
+func logTarget(t []Chunck) {
+	for _, v := range t {
+		Printfln("---")
+		Printfln("Key: %v", v.Key)
+		Printfln("Src: %v", v.Src)
+		Printfln("File: %v", v.File)
+		Printfln("Css: %v", v.Css)
+		Printfln("Assets: %v", v.Assets)
+		Printfln("IsEntry: %v", v.IsEntry)
+		Printfln("IsDynamicEntry: %v", v.IsDynamicEntry)
+		Printfln("Imports: %v", v.Imports)
+		Printfln("DynamicImports: %v", v.DynamicImports)
+	}
+}
 
-	switch v.Kind() {
-	case reflect.Map:
+func processManifest(m ManifestMap) []Chunck {
+	target := []Chunck{}
 
-		log.Printf("Loaded manifest raw data: %v", v.Interface())
+	for k, v := range m {
+		chunck := processChunck(v)
 
-		// for k, v := range v.Interface() {
+		chunck.Key = k
 
-		// }
-
-		break
-	default:
-		log.Fatal("Incorrect manifest.json")
+		target = append(target, chunck)
 	}
 
+	logTarget(target)
+
+	return target
 }
 
-/*
+func processStringSlice(assets interface{}) []string {
 
-"file": "assets/main.4889e940.js",
-    "src": "main.js",
-    "isEntry": true,
-    "dynamicImports": ["views/foo.js"],
-    "css": ["assets/main.b82dbe22.css"],
-    "assets": ["assets/asset.0ab0f9cd.png"]
+	slice := []string{}
 
+	v := reflect.ValueOf(assets)
 
+	if v.Kind() == reflect.Slice {
 
-	export interface ManifestChunk {
-  src?: string
-  file: string
-  css?: string[]
-  assets?: string[]
-  isEntry?: boolean
-  isDynamicEntry?: boolean
-  imports?: string[]
-  dynamicImports?: string[]
+		if (v.Len()) == 0 {
+			return slice
+		}
+
+		for i := 0; i < v.Len(); i++ {
+			slice = append(slice, fmt.Sprintf("%v", v.Index(i)))
+		}
+	}
+
+	return slice
 }
 
+func processBool(v interface{}) bool {
+	return reflect.ValueOf(v).Bool()
+}
 
-*/
+func processChunck(ch ChunckMap) Chunck {
+
+	chunck := Chunck{}
+
+	for k, v := range ch {
+
+		if k == "src" {
+			chunck.Src = fmt.Sprintf("%v", v)
+		}
+
+		if k == "file" {
+			chunck.File = fmt.Sprintf("%v", v)
+		}
+
+		if k == "css" {
+			chunck.Css = processStringSlice(v)
+		}
+
+		if k == "assets" {
+			chunck.Assets = processStringSlice(v)
+		}
+
+		if k == "imports" {
+			chunck.Imports = processStringSlice(v)
+		}
+
+		if k == "dynamicImports" {
+			chunck.DynamicImports = processStringSlice(v)
+		}
+
+		if k == "isEntry" {
+			chunck.IsEntry = processBool(v)
+		}
+
+		if k == "IsDynamicEntry" {
+			chunck.IsDynamicEntry = processBool(v)
+		}
+
+	}
+
+	return chunck
+}
