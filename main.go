@@ -1,6 +1,7 @@
 package main
 
 import (
+	"govite/internal/manifest"
 	"html/template"
 	"log"
 	"net/http"
@@ -25,7 +26,14 @@ func loadTemplate() *template.Template {
 }
 
 func init() {
-	getManifest()
+	resources, err := manifest.Parse("static/manifest.json")
+
+	if err != nil {
+		log.Fatal("Failed to load manifest.json")
+	}
+
+	log.Printf("Loaded manifest data: %v \n", resources)
+
 	index = loadTemplate()
 }
 

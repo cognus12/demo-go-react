@@ -1,65 +1,32 @@
-package main
+package manifest
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"reflect"
 )
 
-type ChunckMap = map[string]interface{}
-type ManifestMap = map[string]ChunckMap
-
-type Chunck struct {
-	Key            string
-	Src            string   `json:"src"`
-	File           string   `json:"file"`
-	Css            []string `json:"css"`
-	Assets         []string `json:"assets"`
-	IsEntry        bool     `json:"isEntry"`
-	IsDynamicEntry bool     `json:"isDynamicEntry"`
-	Imports        []string `json:"imports"`
-	DynamicImports []string `json:"dynamicImports"`
-}
-
-func getManifest() {
-	manifest, err := os.Open("static/manifest.json")
+func Parse(path string) ([]Chunck, error) {
+	manifest, err := os.Open(path)
 
 	if err != nil {
-		log.Fatal("Failed to load manifest.json")
+		return nil, err
 	}
 
-	// var v interface{}
+	defer manifest.Close()
 
-	var v ManifestMap
+	var v manifestMap
 
 	byteValue, _ := ioutil.ReadAll(manifest)
 
 	json.Unmarshal(byteValue, &v)
 
-	processManifest(v)
-
-	defer manifest.Close()
+	return processManifest(v), nil
 }
 
-func logTarget(t []Chunck) {
-	for _, v := range t {
-		Printfln("---")
-		Printfln("Key: %v", v.Key)
-		Printfln("Src: %v", v.Src)
-		Printfln("File: %v", v.File)
-		Printfln("Css: %v", v.Css)
-		Printfln("Assets: %v", v.Assets)
-		Printfln("IsEntry: %v", v.IsEntry)
-		Printfln("IsDynamicEntry: %v", v.IsDynamicEntry)
-		Printfln("Imports: %v", v.Imports)
-		Printfln("DynamicImports: %v", v.DynamicImports)
-	}
-}
-
-func processManifest(m ManifestMap) []Chunck {
+func processManifest(m manifestMap) []Chunck {
 	target := []Chunck{}
 
 	for k, v := range m {
@@ -69,8 +36,6 @@ func processManifest(m ManifestMap) []Chunck {
 
 		target = append(target, chunck)
 	}
-
-	logTarget(target)
 
 	return target
 }
@@ -99,7 +64,7 @@ func processBool(v interface{}) bool {
 	return reflect.ValueOf(v).Bool()
 }
 
-func processChunck(ch ChunckMap) Chunck {
+func processChunck(ch chunckMap) Chunck {
 
 	chunck := Chunck{}
 
