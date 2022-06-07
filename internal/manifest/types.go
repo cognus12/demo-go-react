@@ -14,3 +14,5 @@ type Chunck struct {
 	Imports        []string `json:"imports"`
 	DynamicImports []string `json:"dynamicImports"`
 }
+
+type ManifestData = []Chunck

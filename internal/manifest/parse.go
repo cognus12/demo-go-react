@@ -8,7 +8,7 @@ import (
 	"reflect"
 )
 
-func Parse(path string) ([]Chunck, error) {
+func Parse(path string) (*ManifestData, error) {
 	manifest, err := os.Open(path)
 
 	if err != nil {
@@ -23,10 +23,23 @@ func Parse(path string) ([]Chunck, error) {
 
 	json.Unmarshal(byteValue, &v)
 
-	return processManifest(v), nil
+	data := processManifest(v)
+
+	return &data, nil
 }
 
-func processManifest(m manifestMap) []Chunck {
+func GetMain(resources *ManifestData) *Chunck {
+	for _, chunck := range *resources {
+		// TODO simplify key
+		if chunck.Key == "src/main.tsx" {
+			return &chunck
+		}
+	}
+
+	return nil
+}
+
+func processManifest(m manifestMap) ManifestData {
 	target := []Chunck{}
 
 	for k, v := range m {

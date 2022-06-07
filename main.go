@@ -10,10 +10,12 @@ import (
 type ViewData struct {
 	Title string
 	// Favicon string
-	Js string
+	*manifest.Chunck
 }
 
 var index *template.Template
+var resources *manifest.ManifestData
+var mainChunck *manifest.Chunck
 
 func loadTemplate() *template.Template {
 	t, err := template.ParseFiles("template.html")
@@ -26,19 +28,25 @@ func loadTemplate() *template.Template {
 }
 
 func init() {
-	resources, err := manifest.Parse("static/manifest.json")
+	var manifestError error
 
-	if err != nil {
+	resources, manifestError = manifest.Parse("static/manifest.json")
+
+	if manifestError != nil {
 		log.Fatal("Failed to load manifest.json")
 	}
 
-	log.Printf("Loaded manifest data: %v \n", resources)
+	mainChunck = manifest.GetMain(resources)
+
+	if mainChunck == nil {
+		log.Fatal("Failed to load assets")
+	}
 
 	index = loadTemplate()
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	data := ViewData{Title: "Go+Vite App"}
+	data := ViewData{Title: "Go+Vite App", Chunck: *&mainChunck}
 
 	index.Execute(w, data)
 }
