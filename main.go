@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 )
 
 type ViewData struct {
@@ -58,9 +59,16 @@ func handlerHello(w http.ResponseWriter, r *http.Request) {
 func main() {
 	fs := http.FileServer(http.Dir("static/assets"))
 
+	// TODO implement running in modes - full, api
+	mode := os.Getenv("MODE")
+
+	log.Println("Run server in mode: ", mode)
+
 	http.HandleFunc("/", handler)
 	http.Handle("/assets/", http.StripPrefix("/assets/", fs))
+
 	http.HandleFunc("/api/hello", handlerHello)
 
+	log.Println("Start server on localhost:8000")
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))
 }
