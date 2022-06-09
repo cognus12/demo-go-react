@@ -1,54 +1,30 @@
 package main
 
 import (
-	"govite/internal/manifest"
+	"govite/internal/web"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 )
 
-type ViewData struct {
-	Title string
-	// Favicon string
-	*manifest.Chunck
-}
+var mode string
 
 var index *template.Template
-var resources *manifest.ManifestData
-var mainChunck *manifest.Chunck
-
-func loadTemplate() *template.Template {
-	t, err := template.ParseFiles("template.html")
-
-	if err == nil {
-		return t
-	} else {
-		panic(err)
-	}
-}
+var data *web.ViewData
 
 func init() {
-	var manifestError error
+	mode = os.Getenv("MODE")
 
-	resources, manifestError = manifest.Parse("static/manifest.json")
-
-	if manifestError != nil {
-		log.Fatal("Failed to load manifest.json")
+	if mode == "api" {
+		return
 	}
 
-	mainChunck = manifest.GetMain(resources)
-
-	if mainChunck == nil {
-		log.Fatal("Failed to load assets")
-	}
-
-	index = loadTemplate()
+	index = web.LoadTemplate()
+	data = web.PrepareIndexPageData()
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	data := ViewData{Title: "Go+Vite App", Chunck: *&mainChunck}
-
 	index.Execute(w, data)
 }
 
@@ -57,15 +33,13 @@ func handlerHello(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	fs := http.FileServer(http.Dir("static/assets"))
-
-	// TODO implement running in modes - full, api
-	mode := os.Getenv("MODE")
-
 	log.Println("Run server in mode: ", mode)
 
-	http.HandleFunc("/", handler)
-	http.Handle("/assets/", http.StripPrefix("/assets/", fs))
+	if mode == "full" {
+		fs := http.FileServer(http.Dir("static/assets"))
+		http.HandleFunc("/", handler)
+		http.Handle("/assets/", http.StripPrefix("/assets/", fs))
+	}
 
 	http.HandleFunc("/api/hello", handlerHello)
 
