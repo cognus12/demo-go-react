@@ -8,7 +8,7 @@ import { Wrapper } from "../../layouts/Wrapper/Wrapper";
 export const Home: FC = () => (
   <Wrapper>
     <Logo />
-    <p>Hello Vite + React!</p>
+    <p>Demo app<br /> Frontend: React <br /> Backend: Go <br /> Build tools: Vite, Deno</p>
     <Counter />
     <HelloFromApi />
     <Link to="/about">About page</Link>
