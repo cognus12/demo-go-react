@@ -9,7 +9,6 @@ import (
 
 type ViewData struct {
 	Title string
-	// Favicon string
 	*manifest.Chunck
 }
 
