@@ -35,11 +35,15 @@ func init() {
 		log.Fatal("Failed to load manifest.json")
 	}
 
+	log.Println("manifest.json loaded")
+
 	mainChunck = manifest.GetMain(resources)
 
 	if mainChunck == nil {
 		log.Fatal("Failed to load assets")
 	}
+
+	log.Println("Main chunck data parsed")
 
 	data = &ViewData{Title: "Go+Vite App", Chunck: mainChunck}
 
@@ -51,6 +55,5 @@ func init() {
 		log.Fatal("Template loading error: ", templateErr.Error())
 	}
 
-	log.Println("Static assets loaded")
-
+	log.Println("index.html template loaded")
 }

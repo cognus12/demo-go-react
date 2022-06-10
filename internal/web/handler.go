@@ -1,10 +1,16 @@
 package web
 
-import "net/http"
+import (
+	"log"
+	"net/http"
+)
 
 func HandleIndex(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/" {
+		log.Println("Execute index.html")
 
-	index.Execute(w, data)
+		index.Execute(w, data)
+	}
 }
 
 var fs = http.FileServer(http.Dir("static/assets"))
