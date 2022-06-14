@@ -1,8 +1,8 @@
 package main
 
 import (
-	"govite/internal/hello"
-	"govite/internal/web"
+	"demo-go-react/internal/hello"
+	"demo-go-react/internal/web"
 	"log"
 	"net/http"
 	"os"

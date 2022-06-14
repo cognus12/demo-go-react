@@ -1,7 +1,7 @@
 package web
 
 import (
-	"govite/internal/manifest"
+	"demo-go-react/internal/manifest"
 	"html/template"
 	"log"
 	"os"
