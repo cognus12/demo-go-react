@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func HandleIndex(w http.ResponseWriter, r *http.Request) {
+func ServeIndex(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
 		log.Println("Execute index.html")
 

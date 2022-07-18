@@ -28,14 +28,13 @@ func Parse(path string) (*ManifestData, error) {
 	return &data, nil
 }
 
-func GetMain(resources *ManifestData) *Chunck {
+func GetMainChunck(resources *ManifestData) *Chunck {
 	for _, chunck := range *resources {
 		// TODO simplify key
 		if chunck.Key == "src/main.tsx" {
 			return &chunck
 		}
 	}
-
 	return nil
 }
 

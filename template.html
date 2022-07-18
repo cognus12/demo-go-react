@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ .Title}}</title>
+    <title>{{ index .Vars "title"}}</title>
     <script type="module" crossorigin src="{{ .File }}"></script>
     {{ range $href := .Css }}
     <link rel="stylesheet" href="{{ $href }}"> 

@@ -8,13 +8,19 @@ import (
 	"os"
 )
 
+var htmlOptions web.ViewParams = map[string]interface{}{
+	"title": "Go-React App",
+}
+
 func main() {
 	mode := os.Getenv("MODE")
 
 	log.Printf("Run app in %v mode \n", mode)
 
 	if mode == "full" {
-		http.HandleFunc("/", web.HandleIndex)
+		web.Initialize(htmlOptions)
+
+		http.HandleFunc("/", web.ServeIndex)
 		http.Handle("/assets/", web.HandleAssets)
 
 		log.Println("Static assets loaded")
