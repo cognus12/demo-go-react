@@ -4,7 +4,6 @@ type chunckMap = map[string]interface{}
 type manifestMap = map[string]chunckMap
 
 type Chunck struct {
-	Key            string
 	Src            string   `json:"src"`
 	File           string   `json:"file"`
 	Css            []string `json:"css"`
@@ -15,4 +14,4 @@ type Chunck struct {
 	DynamicImports []string `json:"dynamicImports"`
 }
 
-type ManifestData = []Chunck
+type ManifestData = map[string]*Chunck

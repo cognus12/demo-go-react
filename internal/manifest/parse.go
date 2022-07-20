@@ -29,24 +29,17 @@ func Parse(path string) (*ManifestData, error) {
 }
 
 func GetMainChunck(resources *ManifestData) *Chunck {
-	for _, chunck := range *resources {
-		// TODO simplify key
-		if chunck.Key == "src/main.tsx" {
-			return &chunck
-		}
-	}
-	return nil
+
+	return (*resources)["src/main.tsx"]
 }
 
 func processManifest(m manifestMap) ManifestData {
-	target := []Chunck{}
+	target := make(map[string]*Chunck)
 
 	for k, v := range m {
 		chunck := processChunck(v)
 
-		chunck.Key = k
-
-		target = append(target, chunck)
+		target[k] = &chunck
 	}
 
 	return target

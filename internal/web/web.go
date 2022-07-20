@@ -23,14 +23,14 @@ var index *template.Template
 const MODE_API = "api"
 const MODE_FULL = "full"
 
-func prepareResources() (*[]manifest.Chunck, error) {
+func prepareResources() (*manifest.ManifestData, error) {
 	var resources *manifest.ManifestData
 	var manifestError error
 	resources, manifestError = manifest.Parse("static/manifest.json")
 	return resources, manifestError
 }
 
-func prepareMainAssets(r *[]manifest.Chunck) (*manifest.Chunck, error) {
+func prepareMainAssets(r *manifest.ManifestData) (*manifest.Chunck, error) {
 	var mainChunck *manifest.Chunck
 	var err error
 	mainChunck = manifest.GetMainChunck(r)
