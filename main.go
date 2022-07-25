@@ -2,7 +2,9 @@ package main
 
 import (
 	"demo-go-react/internal/hello"
+	"demo-go-react/internal/vite"
 	"demo-go-react/internal/web"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +12,10 @@ import (
 
 var htmlOptions web.ViewParams = map[string]interface{}{
 	"title": "Go-React App",
+}
+
+var Config = vite.ViteConfig{
+	ManifestPath: "static/manifest.json",
 }
 
 func main() {
@@ -30,5 +36,13 @@ func main() {
 
 	log.Println("Start server on localhost:8000")
 
-	log.Fatal(http.ListenAndServe("localhost:8000", nil))
+	v, err := vite.NewVite(&Config)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println((*v).Manifest)
+
+	// log.Fatal(http.ListenAndServe("localhost:8000", nil))
 }
