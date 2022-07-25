@@ -3,7 +3,6 @@ package vite
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"reflect"
 )
@@ -23,7 +22,6 @@ func isMap(v *reflect.Value) bool {
 }
 
 func mapReflectedStringSlice(v *reflect.Value) (target []string) {
-
 	if (*v).Kind() != reflect.Slice {
 		return target
 	}
@@ -48,7 +46,6 @@ func transformReflectedBool(v *reflect.Value) (target bool) {
 }
 
 func mapReflectedChunk(c reflect.Value) *Chunck {
-
 	if !isMap(&c) {
 		return nil
 	}
@@ -123,8 +120,6 @@ func parseManifest(path string) (ManifestMap, error) {
 		value := reflectedManifest.MapIndex(key).Elem()
 		target[key.String()] = mapReflectedChunk(value)
 	}
-
-	fmt.Println(target)
 
 	return target, nil
 }

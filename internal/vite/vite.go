@@ -2,7 +2,6 @@ package vite
 
 import (
 	"errors"
-	"html/template"
 )
 
 type Chunck struct {
@@ -19,47 +18,18 @@ type Chunck struct {
 type ManifestMap = map[string]*Chunck
 type TemplateArgs = map[string]interface{}
 
-type TemplateData struct {
-	Args TemplateArgs
-	*Chunck
-}
-
 type Vite struct {
-	Manifest ManifestMap
-	Main     string
+	Main     *Chunck
+	Env      string
+	Platform string
 }
 
-type ViteConfig struct {
-	// relative path, eg template/template.html
-	TemplatePath string
-	// relative path, eg static/assets
-	AssetsPath string
-	// relative path, eg static/manifest.json
-	ManifestPath string
-	// production or development, default - production
-	Env string
-	// react, vue, svelte, default - react
-	Platform string
-	// main chunk name, default - src/main.tsx
-	MainChunk string
-}
+var Chuncks ManifestMap = map[string]*Chunck{}
 
 var v *Vite = &Vite{}
-var t *template.Template
 
 func NewVite(cfg *ViteConfig) (*Vite, error) {
-
-	if cfg.Env == "" {
-		cfg.Env = "production"
-	}
-
-	if cfg.Platform == "" {
-		cfg.Platform = "react"
-	}
-
-	if cfg.MainChunk == "" {
-		cfg.MainChunk = "src/main.tsx"
-	}
+	setConfigDefaults(cfg)
 
 	chunks, err := parseManifest(cfg.ManifestPath)
 
@@ -67,15 +37,16 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 		return nil, err
 	}
 
-	v.Manifest = chunks
+	Chuncks = chunks
 
-	_, ok := chunks[cfg.MainChunk]
+	mainChunck, ok := chunks[cfg.MainEntry]
 
 	if !ok {
 		return nil, errors.New("Wrong main chunk name")
 	}
 
-	v.Main = cfg.MainChunk
+	v.Main = mainChunck
+	v.Platform = cfg.Platform
 
 	return v, nil
 }

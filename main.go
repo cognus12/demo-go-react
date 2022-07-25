@@ -25,10 +25,8 @@ func main() {
 
 	if mode == "full" {
 		web.Initialize(htmlOptions)
-
 		http.HandleFunc("/", web.ServeIndex)
 		http.Handle("/assets/", web.HandleAssets)
-
 		log.Println("Static assets loaded")
 	}
 
@@ -42,7 +40,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println((*v).Manifest)
-
+	fmt.Println(v.Main)
 	// log.Fatal(http.ListenAndServe("localhost:8000", nil))
 }
