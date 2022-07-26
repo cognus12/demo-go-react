@@ -77,7 +77,7 @@ func mapReflectedChunk(c reflect.Value) *Chunck {
 		}
 
 		if keyStr == "css" {
-			target.Css = mapReflectedStringSlice(&value)
+			target.CSS = mapReflectedStringSlice(&value)
 		}
 
 		if keyStr == "assets" {

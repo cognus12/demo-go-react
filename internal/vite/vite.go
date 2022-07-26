@@ -2,7 +2,6 @@ package vite
 
 import (
 	"errors"
-	"fmt"
 	"io/fs"
 	"os"
 	"path"
@@ -11,7 +10,7 @@ import (
 type Chunck struct {
 	Src            string   `json:"src"`
 	File           string   `json:"file"`
-	Css            []string `json:"css"`
+	CSS            []string `json:"css"`
 	Assets         []string `json:"assets"`
 	IsEntry        bool     `json:"isEntry"`
 	IsDynamicEntry bool     `json:"isDynamicEntry"`
@@ -23,31 +22,33 @@ type ManifestMap = map[string]*Chunck
 type TemplateArgs = map[string]interface{}
 
 type Vite struct {
-	// Chuncks ManifestMap
-
 	MainEntry string
 	CSS       []string
 	Assets    []string
+	Imports   []string
 
+	FS              fs.FS
 	Env             string
 	Platform        string
-	FS              fs.FS
 	ProjectPath     string
-	DistFolder      string
+	OutDir          string
 	AssetsPath      string
 	AssetsDir       string
 	AssetsURLPrefix string
+	Data            map[string]any
 }
 
 var v *Vite
 
-func NewVite(cfg *ViteConfig) (*Vite, error) {
+func NewVite(cfg *ViteConfig, data map[string]any) (*Vite, error) {
 	setConfigDefaults(cfg)
 
 	v = &Vite{
-		DistFolder: cfg.OutDir,
+		OutDir: cfg.OutDir,
+		Data:   data,
 	}
 
+	v.Env = cfg.Env
 	v.Platform = cfg.Platform
 	v.ProjectPath = cfg.ProjectDir
 	v.FS = os.DirFS(cfg.ProjectDir)
@@ -60,8 +61,6 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 		return nil, err
 	}
 
-	// v.Chuncks = chunks
-
 	mainChunck, ok := chunks[cfg.MainEntry]
 
 	if !ok {
@@ -69,11 +68,10 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 	}
 
 	v.MainEntry = mainChunck.File
-	v.CSS = mainChunck.Css
+	v.CSS = mainChunck.CSS
+	v.Imports = mainChunck.Imports
 
-	v.AssetsPath = path.Join(v.ProjectPath, v.DistFolder, v.AssetsDir)
-
-	fmt.Println(v.AssetsPath)
+	v.AssetsPath = path.Join(v.ProjectPath, v.OutDir, v.AssetsDir)
 
 	return v, nil
 }

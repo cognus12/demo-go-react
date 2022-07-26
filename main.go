@@ -23,7 +23,11 @@ var Config = vite.ViteConfig{
 func main() {
 	log.Println("Start server on localhost:8000")
 
-	v, err := vite.NewVite(&Config)
+	data := map[string]any{
+		"title": "Go-React App",
+	}
+
+	v, err := vite.NewVite(&Config, data)
 
 	if err != nil {
 		log.Fatal(err)
