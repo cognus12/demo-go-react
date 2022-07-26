@@ -2,6 +2,10 @@ package vite
 
 import (
 	"errors"
+	"fmt"
+	"io/fs"
+	"os"
+	"path"
 )
 
 type Chunck struct {
@@ -19,25 +23,44 @@ type ManifestMap = map[string]*Chunck
 type TemplateArgs = map[string]interface{}
 
 type Vite struct {
-	Main     *Chunck
-	Env      string
-	Platform string
+	// Chuncks ManifestMap
+
+	MainEntry string
+	CSS       []string
+	Assets    []string
+
+	Env             string
+	Platform        string
+	FS              fs.FS
+	ProjectPath     string
+	DistFolder      string
+	AssetsPath      string
+	AssetsDir       string
+	AssetsURLPrefix string
 }
 
-var Chuncks ManifestMap = map[string]*Chunck{}
-
-var v *Vite = &Vite{}
+var v *Vite
 
 func NewVite(cfg *ViteConfig) (*Vite, error) {
 	setConfigDefaults(cfg)
 
-	chunks, err := parseManifest(cfg.ManifestPath)
+	v = &Vite{
+		DistFolder: cfg.OutDir,
+	}
+
+	v.Platform = cfg.Platform
+	v.ProjectPath = cfg.ProjectDir
+	v.FS = os.DirFS(cfg.ProjectDir)
+	v.AssetsURLPrefix = cfg.AssetsURLPrefix
+	v.AssetsDir = cfg.AssetsDir
+
+	chunks, err := parseManifest(v.FS, path.Join(cfg.OutDir, "manifest.json"))
 
 	if err != nil {
 		return nil, err
 	}
 
-	Chuncks = chunks
+	// v.Chuncks = chunks
 
 	mainChunck, ok := chunks[cfg.MainEntry]
 
@@ -45,8 +68,12 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 		return nil, errors.New("Wrong main chunk name")
 	}
 
-	v.Main = mainChunck
-	v.Platform = cfg.Platform
+	v.MainEntry = mainChunck.File
+	v.CSS = mainChunck.Css
+
+	v.AssetsPath = path.Join(v.ProjectPath, v.DistFolder, v.AssetsDir)
+
+	fmt.Println(v.AssetsPath)
 
 	return v, nil
 }

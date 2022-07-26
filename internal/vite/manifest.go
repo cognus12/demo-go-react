@@ -3,12 +3,12 @@ package vite
 import (
 	"encoding/json"
 	"errors"
-	"os"
+	"io/fs"
 	"reflect"
 )
 
-func read(path string) ([]byte, error) {
-	content, err := os.ReadFile(path)
+func read(fsys fs.FS, path string) ([]byte, error) {
+	content, err := fs.ReadFile(fsys, path)
 
 	return content, err
 }
@@ -96,8 +96,8 @@ func mapReflectedChunk(c reflect.Value) *Chunck {
 	return &target
 }
 
-func parseManifest(path string) (ManifestMap, error) {
-	bytes, err := read(path)
+func parseManifest(fs fs.FS, path string) (ManifestMap, error) {
+	bytes, err := read(fs, path)
 
 	if err != nil {
 		return nil, err
