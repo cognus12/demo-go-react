@@ -51,7 +51,7 @@ func main() {
 			}
 		}
 	})
-	http.Handle("/assets/", v.FileServer())
+	http.Handle("/src/", v.FileServer())
 	http.HandleFunc("/api/hello", hello.SayHello)
 
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))

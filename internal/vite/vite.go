@@ -87,6 +87,8 @@ func NewVite(cfg *ViteConfig, data map[string]any) (*Vite, error) {
 
 	if v.Env == "development" {
 		v.SrcDir = cfg.SrcDir
+		v.AssetsPath = path.Join(v.ProjectPath, v.SrcDir)
+		// fmt.Println(v.AssetsPath)
 		v.DevServerURL = fmt.Sprintf("http://%v:%v", cfg.DevServerHost, cfg.DevServerPort)
 	}
 

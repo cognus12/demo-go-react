@@ -2,9 +2,34 @@ package vite
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"strings"
 )
+
+func (v *Vite) Favicon() (template.HTML, error) {
+	var href string
+
+	if v.Env == "production" {
+		href = "/assets/favicon.svg"
+	}
+
+	if v.Env == "development" {
+		href = "/frontend/public/assets/favicon.svg"
+	}
+
+	tag := fmt.Sprintf(`<link rel="icon" type="image/svg+xml" href="%v" />`, href)
+	tmpl, err := template.New("favicon").Parse(tag)
+
+	if err != nil {
+		return "", err
+	}
+
+	var buffer bytes.Buffer
+	tmpl.Execute(&buffer, v)
+
+	return template.HTML(buffer.String()), nil
+}
 
 func (v *Vite) Tags() (template.HTML, error) {
 	b := strings.Builder{}
