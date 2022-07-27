@@ -23,6 +23,25 @@ func (v *Vite) Tags() (template.HTML, error) {
 		`)
 	}
 
+	if v.Env == "development" {
+		if v.Platform == "react" {
+			b.WriteString(`
+				<script type="module">
+					import RefreshRuntime from '{{ .DevServerURL }}/@react-refresh'
+					RefreshRuntime.injectIntoGlobalHook(window)
+					window.$RefreshReg$ = () => {}
+					window.$RefreshSig$ = () => (type) => type
+					window.__vite_plugin_react_preamble_installed__ = true
+				</script>
+			`)
+		}
+
+		b.WriteString(`
+			<script type="module" src="{{ .DevServerURL }}/@vite/client"></script>
+        	<script type="module" src="{{ .DevServerURL }}/{{ .SrcDir }}/main.tsx"></script>
+		`)
+	}
+
 	tmpl, err := template.New("tags").Parse(b.String())
 
 	if err != nil {

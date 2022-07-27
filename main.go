@@ -18,6 +18,7 @@ var index *template.Template
 var Config = vite.ViteConfig{
 	ProjectDir: "frontend",
 	OutDir:     "dist",
+	Env:        "development",
 }
 
 func main() {

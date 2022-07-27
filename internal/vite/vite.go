@@ -2,6 +2,7 @@ package vite
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
@@ -27,15 +28,21 @@ type Vite struct {
 	Assets    []string
 	Imports   []string
 
-	FS              fs.FS
-	Env             string
-	Platform        string
-	ProjectPath     string
+	FS          fs.FS
+	Env         string
+	Platform    string
+	ProjectPath string
+
+	SrcDir          string
 	OutDir          string
 	AssetsPath      string
 	AssetsDir       string
 	AssetsURLPrefix string
-	Data            map[string]any
+
+	MainEntryPath string
+	DevServerURL  string
+
+	Data map[string]any
 }
 
 var v *Vite
@@ -52,26 +59,36 @@ func NewVite(cfg *ViteConfig, data map[string]any) (*Vite, error) {
 	v.Platform = cfg.Platform
 	v.ProjectPath = cfg.ProjectDir
 	v.FS = os.DirFS(cfg.ProjectDir)
-	v.AssetsURLPrefix = cfg.AssetsURLPrefix
-	v.AssetsDir = cfg.AssetsDir
 
-	chunks, err := parseManifest(v.FS, path.Join(cfg.OutDir, "manifest.json"))
+	v.MainEntryPath = fmt.Sprintf("%v/%v", cfg.SrcDir, cfg.MainEntry)
 
-	if err != nil {
-		return nil, err
+	if v.Env == "production" {
+		v.AssetsURLPrefix = cfg.AssetsURLPrefix
+		v.AssetsDir = cfg.AssetsDir
+
+		chunks, err := parseManifest(v.FS, path.Join(cfg.OutDir, "manifest.json"))
+
+		if err != nil {
+			return nil, err
+		}
+
+		mainChunck, ok := chunks[v.MainEntryPath]
+
+		if !ok {
+			return nil, errors.New("Wrong main chunk name")
+		}
+
+		v.MainEntry = mainChunck.File
+		v.CSS = mainChunck.CSS
+		v.Imports = mainChunck.Imports
+
+		v.AssetsPath = path.Join(v.ProjectPath, v.OutDir, v.AssetsDir)
 	}
 
-	mainChunck, ok := chunks[cfg.MainEntry]
-
-	if !ok {
-		return nil, errors.New("Wrong main chunk name")
+	if v.Env == "development" {
+		v.SrcDir = cfg.SrcDir
+		v.DevServerURL = fmt.Sprintf("http://%v:%v", cfg.DevServerHost, cfg.DevServerPort)
 	}
-
-	v.MainEntry = mainChunck.File
-	v.CSS = mainChunck.CSS
-	v.Imports = mainChunck.Imports
-
-	v.AssetsPath = path.Join(v.ProjectPath, v.OutDir, v.AssetsDir)
 
 	return v, nil
 }

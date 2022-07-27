@@ -9,21 +9,30 @@ type ViteConfig struct {
 	MainEntry string
 	// path to frontend app folder relative to the root (default - frontend)
 	ProjectDir string
+	//
+	SrcDir string
 	// relative path to FrontendFolder, eg dist
 	OutDir string
 	//
 	AssetsDir string
 	// AssetsURLPrefix (/assets/ for prod, /src/ for dev)
 	AssetsURLPrefix string
+	//
+	DevServerHost string
+	//
+	DevServerPort string
 }
 
 var defaults = map[string]string{
 	"Env":             "production",
 	"Platform":        "react",
-	"MainEntry":       "src/main.tsx",
+	"MainEntry":       "main.tsx",
 	"AssetsURLPrefix": "/assets/",
+	"SrcDir":          "src",
 	"OutDir":          "dist",
 	"AssetsDir":       "assets",
+	"DevServerHost":   "localhost",
+	"DevServerPort":   "3000",
 }
 
 func setConfigDefaults(cfg *ViteConfig) {
@@ -45,5 +54,20 @@ func setConfigDefaults(cfg *ViteConfig) {
 
 	if cfg.AssetsDir == "" {
 		cfg.AssetsDir = defaults["AssetsDir"]
+	}
+
+	if cfg.Env == "development" {
+		if cfg.DevServerHost == "" {
+			cfg.DevServerHost = defaults["DevServerHost"]
+		}
+
+		if cfg.DevServerPort == "" {
+			cfg.DevServerPort = defaults["DevServerPort"]
+		}
+
+		if cfg.SrcDir == "" {
+			cfg.SrcDir = defaults["SrcDir"]
+		}
+
 	}
 }
