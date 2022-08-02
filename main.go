@@ -4,6 +4,7 @@ import (
 	"demo-go-react/internal/hello"
 	"demo-go-react/internal/vite"
 	"demo-go-react/internal/web"
+	"embed"
 	"html/template"
 	"log"
 	"net/http"
@@ -15,10 +16,14 @@ var htmlOptions web.ViewParams = map[string]interface{}{
 
 var index *template.Template
 
+//go:embed frontend/dist template.html
+var frontend embed.FS
+
 var Config = vite.ViteConfig{
+	FS:         frontend,
 	ProjectDir: "frontend",
 	OutDir:     "dist",
-	Env:        "development",
+	// Env:        "development",
 }
 
 func main() {
@@ -35,7 +40,7 @@ func main() {
 	}
 
 	var templateErr error
-	index, templateErr = template.ParseFiles("template.html")
+	index, templateErr = template.ParseFS(frontend, "template.html")
 
 	if templateErr != nil {
 		log.Fatal("Template loading error: ", templateErr)
@@ -51,7 +56,12 @@ func main() {
 			}
 		}
 	})
-	http.Handle("/src/", v.FileServer())
+	http.Handle("/assets/", v.FileServer())
+
+	if Config.Env == "development" {
+		http.Handle("/src/", v.FileServer())
+	}
+
 	http.HandleFunc("/api/hello", hello.SayHello)
 
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))

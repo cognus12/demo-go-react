@@ -96,8 +96,8 @@ func mapReflectedChunk(c reflect.Value) *Chunck {
 	return &target
 }
 
-func parseManifest(fs fs.FS, path string) (ManifestMap, error) {
-	bytes, err := read(fs, path)
+func parseManifest(dist *fs.FS, path string) (ManifestMap, error) {
+	bytes, err := read(*dist, path)
 
 	if err != nil {
 		return nil, err

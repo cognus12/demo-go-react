@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"os"
+	"log"
 	"path"
 )
 
@@ -29,6 +29,7 @@ type Vite struct {
 	Imports   []string
 
 	FS          fs.FS
+	DistFS      fs.FS
 	Env         string
 	Platform    string
 	ProjectPath string
@@ -58,7 +59,14 @@ func NewVite(cfg *ViteConfig, data map[string]any) (*Vite, error) {
 	v.Env = cfg.Env
 	v.Platform = cfg.Platform
 	v.ProjectPath = cfg.ProjectDir
-	v.FS = os.DirFS(cfg.ProjectDir)
+
+	distFs, err := fs.Sub(cfg.FS, cfg.ProjectDir)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	v.DistFS = distFs
 
 	v.MainEntryPath = fmt.Sprintf("%v/%v", cfg.SrcDir, cfg.MainEntry)
 
@@ -66,7 +74,7 @@ func NewVite(cfg *ViteConfig, data map[string]any) (*Vite, error) {
 		v.AssetsURLPrefix = cfg.AssetsURLPrefix
 		v.AssetsDir = cfg.AssetsDir
 
-		chunks, err := parseManifest(v.FS, path.Join(cfg.OutDir, "manifest.json"))
+		chunks, err := parseManifest(&v.DistFS, path.Join(cfg.OutDir, "manifest.json"))
 
 		if err != nil {
 			return nil, err

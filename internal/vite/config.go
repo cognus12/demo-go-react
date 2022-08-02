@@ -1,6 +1,10 @@
 package vite
 
+import "io/fs"
+
 type ViteConfig struct {
+	//
+	FS fs.FS
 	// production or development, default - production
 	Env string
 	// react, vue, svelte, default - react
@@ -56,6 +60,10 @@ func setConfigDefaults(cfg *ViteConfig) {
 		cfg.AssetsDir = defaults["AssetsDir"]
 	}
 
+	if cfg.SrcDir == "" {
+		cfg.SrcDir = defaults["SrcDir"]
+	}
+
 	if cfg.Env == "development" {
 		if cfg.DevServerHost == "" {
 			cfg.DevServerHost = defaults["DevServerHost"]
@@ -64,10 +72,5 @@ func setConfigDefaults(cfg *ViteConfig) {
 		if cfg.DevServerPort == "" {
 			cfg.DevServerPort = defaults["DevServerPort"]
 		}
-
-		if cfg.SrcDir == "" {
-			cfg.SrcDir = defaults["SrcDir"]
-		}
-
 	}
 }

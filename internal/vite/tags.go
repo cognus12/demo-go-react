@@ -15,7 +15,7 @@ func (v *Vite) Favicon() (template.HTML, error) {
 	}
 
 	if v.Env == "development" {
-		href = "/frontend/public/assets/favicon.svg"
+		href = "/assets/favicon.svg"
 	}
 
 	tag := fmt.Sprintf(`<link rel="icon" type="image/svg+xml" href="%v" />`, href)

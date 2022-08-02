@@ -3,8 +3,10 @@ package vite
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/url"
+	"path"
 )
 
 type DevHandler struct{}
@@ -17,6 +19,7 @@ func copyHeader(dst, src http.Header) {
 	}
 }
 
+// TODO make cleaner
 func (DevHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{}
 	r.RequestURI = ""
@@ -41,17 +44,28 @@ func (DevHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, resp.Body)
 }
 
-// func devHandler(w http.ResponseWriter, r *http.Request) {
-// 	http.Redirect(w, r, "http://localhost:3000"+r.URL.Path, 300)
-// }
-
 func (v *Vite) FileServer() http.Handler {
+	stripPrefix := "/"
 
 	if v.Env == "development" {
-		return http.StripPrefix("/", DevHandler{})
+		return http.StripPrefix(stripPrefix, DevHandler{})
 	}
 
-	fs := http.FileServer(http.Dir(v.AssetsPath))
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		dist, err := fs.Sub(v.DistFS, path.Join(v.OutDir, v.AssetsDir))
 
-	return http.StripPrefix(v.AssetsURLPrefix, fs)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		dirToServ := http.FS(dist)
+		server := http.StripPrefix(v.AssetsURLPrefix, http.FileServer(dirToServ))
+
+		server.ServeHTTP(w, r)
+	}
+
+	fshandler := http.HandlerFunc(handler)
+
+	return fshandler
 }
