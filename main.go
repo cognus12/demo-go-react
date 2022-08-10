@@ -2,33 +2,70 @@ package main
 
 import (
 	"demo-go-react/internal/hello"
-	"demo-go-react/internal/web"
+	"demo-go-react/pkg/vite"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 )
 
-var htmlOptions web.ViewParams = map[string]interface{}{
-	"title": "Go-React App",
+var index *template.Template
+
+// for production mode remove space before go:embed, uncomment var
+// go:embed frontend/dist template.html
+// var frontend embed.FS
+
+// for dev mode
+var frontend = os.DirFS("frontend")
+
+var Config = vite.ViteConfig{
+	FS:         frontend,
+	ProjectDir: "frontend",
+	OutDir:     "dist",
+	// Env:        "development",
 }
 
 func main() {
-	mode := os.Getenv("MODE")
+	log.Println("Start server on localhost:8000")
 
-	log.Printf("Run app in %v mode \n", mode)
-
-	if mode == "full" {
-		web.Initialize(htmlOptions)
-
-		http.HandleFunc("/", web.ServeIndex)
-		http.Handle("/assets/", web.HandleAssets)
-
-		log.Println("Static assets loaded")
+	// any custom variables to be passed to template
+	data := map[string]any{
+		"title": "Go-React App",
 	}
 
-	http.HandleFunc("/api/hello", hello.SayHello)
+	v, err := vite.NewVite(&Config, data)
 
-	log.Println("Start server on localhost:8000")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var templateErr error
+
+	// for prod
+	// index, templateErr = template.ParseFS(frontend, "template.html")
+
+	index, templateErr = template.ParseFiles("template.html")
+
+	if templateErr != nil {
+		log.Fatal("Template loading error: ", templateErr)
+	}
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			log.Println("Execute index.html")
+			err := index.Execute(w, v)
+
+			if err != nil {
+				log.Fatal("Template exicuting error:", err)
+			}
+		}
+	})
+
+	// set assets handler
+	http.Handle(v.AssetsURLPrefix, v.FileServer())
+
+	// handle demo rest endpoit
+	http.HandleFunc("/api/hello", hello.SayHello)
 
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))
 }
