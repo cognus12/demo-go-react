@@ -4,10 +4,10 @@ import (
 	"demo-go-react/internal/hello"
 	"demo-go-react/internal/vite"
 	"demo-go-react/internal/web"
-	"embed"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 )
 
 var htmlOptions web.ViewParams = map[string]interface{}{
@@ -16,14 +16,18 @@ var htmlOptions web.ViewParams = map[string]interface{}{
 
 var index *template.Template
 
-//go:embed frontend/dist template.html
-var frontend embed.FS
+// for production mode remove space before go:embed, uncomment var
+
+// go:embed frontend/dist template.html
+// var frontend embed.FS
+
+var frontend = os.DirFS("frontend")
 
 var Config = vite.ViteConfig{
 	FS:         frontend,
 	ProjectDir: "frontend",
 	OutDir:     "dist",
-	// Env:        "development",
+	Env:        "development",
 }
 
 func main() {
@@ -40,7 +44,10 @@ func main() {
 	}
 
 	var templateErr error
-	index, templateErr = template.ParseFS(frontend, "template.html")
+
+	// index, templateErr = template.ParseFS(frontend, "template.html")
+
+	index, templateErr = template.ParseFiles("template.html")
 
 	if templateErr != nil {
 		log.Fatal("Template loading error: ", templateErr)
@@ -56,11 +63,9 @@ func main() {
 			}
 		}
 	})
-	http.Handle("/assets/", v.FileServer())
 
-	if Config.Env == "development" {
-		http.Handle("/src/", v.FileServer())
-	}
+	// set assets handler
+	http.Handle(v.AssetsURLPrefix, v.FileServer())
 
 	http.HandleFunc("/api/hello", hello.SayHello)
 

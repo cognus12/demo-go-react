@@ -71,7 +71,7 @@ func NewVite(cfg *ViteConfig, data map[string]any) (*Vite, error) {
 	v.MainEntryPath = fmt.Sprintf("%v/%v", cfg.SrcDir, cfg.MainEntry)
 
 	if v.Env == "production" {
-		v.AssetsURLPrefix = cfg.AssetsURLPrefix
+
 		v.AssetsDir = cfg.AssetsDir
 
 		chunks, err := parseManifest(&v.DistFS, path.Join(cfg.OutDir, "manifest.json"))
@@ -96,9 +96,10 @@ func NewVite(cfg *ViteConfig, data map[string]any) (*Vite, error) {
 	if v.Env == "development" {
 		v.SrcDir = cfg.SrcDir
 		v.AssetsPath = path.Join(v.ProjectPath, v.SrcDir)
-		// fmt.Println(v.AssetsPath)
 		v.DevServerURL = fmt.Sprintf("http://%v:%v", cfg.DevServerHost, cfg.DevServerPort)
 	}
+
+	v.AssetsURLPrefix = cfg.AssetsURLPrefix
 
 	return v, nil
 }

@@ -8,15 +8,7 @@ import (
 )
 
 func (v *Vite) Favicon() (template.HTML, error) {
-	var href string
-
-	if v.Env == "production" {
-		href = "/assets/favicon.svg"
-	}
-
-	if v.Env == "development" {
-		href = "/assets/favicon.svg"
-	}
+	var href string = "/assets/favicon.svg"
 
 	tag := fmt.Sprintf(`<link rel="icon" type="image/svg+xml" href="%v" />`, href)
 	tmpl, err := template.New("favicon").Parse(tag)

@@ -1,6 +1,8 @@
 package vite
 
-import "io/fs"
+import (
+	"io/fs"
+)
 
 type ViteConfig struct {
 	//
@@ -25,18 +27,20 @@ type ViteConfig struct {
 	DevServerHost string
 	//
 	DevServerPort string
+	//
 }
 
 var defaults = map[string]string{
-	"Env":             "production",
-	"Platform":        "react",
-	"MainEntry":       "main.tsx",
-	"AssetsURLPrefix": "/assets/",
-	"SrcDir":          "src",
-	"OutDir":          "dist",
-	"AssetsDir":       "assets",
-	"DevServerHost":   "localhost",
-	"DevServerPort":   "3000",
+	"Env":                 "production",
+	"Platform":            "react",
+	"MainEntry":           "main.tsx",
+	"AssetsURLPrefixProd": "/assets/",
+	"AssetsURLPrefixDev":  "/src/",
+	"SrcDir":              "src",
+	"OutDir":              "dist",
+	"AssetsDir":           "assets",
+	"DevServerHost":       "localhost",
+	"DevServerPort":       "3000",
 }
 
 func setConfigDefaults(cfg *ViteConfig) {
@@ -52,16 +56,18 @@ func setConfigDefaults(cfg *ViteConfig) {
 		cfg.MainEntry = defaults["MainEntry"]
 	}
 
-	if cfg.AssetsURLPrefix == "" {
-		cfg.AssetsURLPrefix = defaults["AssetsURLPrefix"]
-	}
-
 	if cfg.AssetsDir == "" {
 		cfg.AssetsDir = defaults["AssetsDir"]
 	}
 
 	if cfg.SrcDir == "" {
 		cfg.SrcDir = defaults["SrcDir"]
+	}
+
+	if cfg.Env == "production" {
+		if cfg.AssetsURLPrefix == "" {
+			cfg.AssetsURLPrefix = defaults["AssetsURLPrefixDev"]
+		}
 	}
 
 	if cfg.Env == "development" {
@@ -71,6 +77,10 @@ func setConfigDefaults(cfg *ViteConfig) {
 
 		if cfg.DevServerPort == "" {
 			cfg.DevServerPort = defaults["DevServerPort"]
+		}
+
+		if cfg.AssetsURLPrefix == "" {
+			cfg.AssetsURLPrefix = defaults["AssetsURLPrefixDev"]
 		}
 	}
 }
