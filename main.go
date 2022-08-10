@@ -12,17 +12,17 @@ import (
 var index *template.Template
 
 // for production mode remove space before go:embed, uncomment var
-
 // go:embed frontend/dist template.html
 // var frontend embed.FS
 
+// for dev mode
 var frontend = os.DirFS("frontend")
 
 var Config = vite.ViteConfig{
 	FS:         frontend,
 	ProjectDir: "frontend",
 	OutDir:     "dist",
-	Env:        "development",
+	// Env:        "development",
 }
 
 func main() {
