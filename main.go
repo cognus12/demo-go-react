@@ -3,16 +3,11 @@ package main
 import (
 	"demo-go-react/internal/hello"
 	"demo-go-react/internal/vite"
-	"demo-go-react/internal/web"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 )
-
-var htmlOptions web.ViewParams = map[string]interface{}{
-	"title": "Go-React App",
-}
 
 var index *template.Template
 
@@ -33,6 +28,7 @@ var Config = vite.ViteConfig{
 func main() {
 	log.Println("Start server on localhost:8000")
 
+	// any custom variables to be passed to template
 	data := map[string]any{
 		"title": "Go-React App",
 	}
@@ -45,6 +41,7 @@ func main() {
 
 	var templateErr error
 
+	// for prod
 	// index, templateErr = template.ParseFS(frontend, "template.html")
 
 	index, templateErr = template.ParseFiles("template.html")
@@ -67,6 +64,7 @@ func main() {
 	// set assets handler
 	http.Handle(v.AssetsURLPrefix, v.FileServer())
 
+	// handle demo rest endpoit
 	http.HandleFunc("/api/hello", hello.SayHello)
 
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))
