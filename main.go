@@ -2,7 +2,7 @@ package main
 
 import (
 	"demo-go-react/internal/hello"
-	"demo-go-react/internal/vite"
+	"demo-go-react/pkg/vite"
 	"html/template"
 	"log"
 	"net/http"
