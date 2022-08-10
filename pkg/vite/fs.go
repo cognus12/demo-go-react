@@ -2,6 +2,7 @@ package vite
 
 import (
 	"io/fs"
+	"log"
 	"net/http"
 	"path"
 )
@@ -14,6 +15,10 @@ func (v *Vite) FileServer() http.Handler {
 	dist, err := fs.Sub(v.DistFS, path.Join(v.OutDir, v.AssetsDir))
 	dirToServ := http.FS(dist)
 	server := http.StripPrefix(v.AssetsURLPrefix, http.FileServer(dirToServ))
+
+	if err != nil {
+		log.Println(err)
+	}
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {

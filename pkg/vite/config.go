@@ -66,7 +66,7 @@ func setConfigDefaults(cfg *ViteConfig) {
 
 	if cfg.Env == "production" {
 		if cfg.AssetsURLPrefix == "" {
-			cfg.AssetsURLPrefix = defaults["AssetsURLPrefixDev"]
+			cfg.AssetsURLPrefix = defaults["AssetsURLPrefixProd"]
 		}
 	}
 
