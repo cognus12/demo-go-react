@@ -19,7 +19,6 @@ func copyHeader(dst, src http.Header) {
 	}
 }
 
-// TODO make cleaner
 func (dp *DevProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{}
 	r.RequestURI = ""
