@@ -21,6 +21,22 @@ func isMap(v *reflect.Value) bool {
 	return false
 }
 
+func processReflectedBool(v *reflect.Value) (target bool) {
+	if (*v).Kind() == reflect.Bool {
+		target = (*v).Bool()
+	} else {
+		target = false
+	}
+
+	return
+}
+
+func processReflectedString(v *reflect.Value) (target string) {
+	target = (*v).String()
+
+	return
+}
+
 func mapReflectedStringSlice(v *reflect.Value) (target []string) {
 	if (*v).Kind() != reflect.Slice {
 		return target
@@ -35,16 +51,6 @@ func mapReflectedStringSlice(v *reflect.Value) (target []string) {
 	return
 }
 
-func transformReflectedBool(v *reflect.Value) (target bool) {
-	if (*v).Kind() == reflect.Bool {
-		target = (*v).Bool()
-	} else {
-		target = false
-	}
-
-	return
-}
-
 func mapReflectedChunk(c reflect.Value) *Chunck {
 	if !isMap(&c) {
 		return nil
@@ -54,41 +60,40 @@ func mapReflectedChunk(c reflect.Value) *Chunck {
 	target := Chunck{}
 
 	for _, k := range keys {
-		key := k.Convert(c.Type().Key())
-		value := c.MapIndex(key).Elem()
-		// fmt.Println("key :", key, " value:", value, "kind:", value.Kind())
+		kk := k.Convert(c.Type().Key())
+		value := c.MapIndex(kk).Elem()
 
-		keyStr := key.String()
+		key := kk.String()
 
-		if keyStr == "file" {
-			target.File = value.String()
+		if key == "file" {
+			target.File = processReflectedString(&value)
 		}
 
-		if keyStr == "src" {
-			target.Src = value.String()
+		if key == "src" {
+			target.Src = processReflectedString(&value)
 		}
 
-		if keyStr == "isEntry" {
-			target.IsEntry = transformReflectedBool(&value)
+		if key == "isEntry" {
+			target.IsEntry = processReflectedBool(&value)
 		}
 
-		if keyStr == "isDynamicEntry" {
-			target.IsDynamicEntry = transformReflectedBool(&value)
+		if key == "isDynamicEntry" {
+			target.IsDynamicEntry = processReflectedBool(&value)
 		}
 
-		if keyStr == "css" {
+		if key == "css" {
 			target.CSS = mapReflectedStringSlice(&value)
 		}
 
-		if keyStr == "assets" {
+		if key == "assets" {
 			target.Assets = mapReflectedStringSlice(&value)
 		}
 
-		if keyStr == "imports" {
+		if key == "imports" {
 			target.Imports = mapReflectedStringSlice(&value)
 		}
 
-		if keyStr == "dynamicImports" {
+		if key == "dynamicImports" {
 			target.DynamicImports = mapReflectedStringSlice(&value)
 		}
 	}
