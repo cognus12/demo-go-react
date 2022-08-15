@@ -3,7 +3,9 @@ package vite
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
+	"log"
 	"reflect"
 )
 
@@ -127,4 +129,81 @@ func parseManifest(dist *fs.FS, path string) (ManifestMap, error) {
 	}
 
 	return target, nil
+}
+
+func printMap(m map[string]interface{}) {
+	for k, v := range m {
+		fmt.Println(k, v)
+	}
+}
+
+type mtarget = map[string]interface{}
+
+func mapChunck(c reflect.Value, dist mtarget) {
+	for _, k := range c.MapKeys() {
+		key := k.Convert(c.Type().Key())
+		value := c.MapIndex(key).Elem()
+
+		if !value.IsZero() {
+			(dist)[key.String()] = c.MapIndex(key).Interface()
+		}
+	}
+}
+
+func mapManifest(m reflect.Value) mtarget {
+	target := mtarget{}
+	rest := []mtarget{}
+	keys := m.MapKeys()
+
+	for _, k := range keys {
+		key := k.Convert(m.Type().Key())
+		chunck := m.MapIndex(key).Elem()
+		var isEntry bool = false
+
+		for _, kk := range chunck.MapKeys() {
+			key := kk.Convert(chunck.Type().Key())
+			value := chunck.MapIndex(key).Elem()
+			if key.String() == "isEntry" {
+				val := processReflectedBool(&value)
+				if val {
+					isEntry = true
+				}
+			}
+		}
+
+		if isEntry {
+			mapChunck(chunck, target)
+		} else {
+			var node = make(mtarget)
+			mapChunck(chunck, node)
+			rest = append(rest, node)
+		}
+	}
+
+	target["nodes"] = rest
+
+	return target
+}
+
+func parseManifestNew(dist *fs.FS, path string) (mtarget, error) {
+	bytes, err := read(*dist, path)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var jsonData interface{}
+	json.Unmarshal(bytes, &jsonData)
+
+	v := reflect.ValueOf(jsonData)
+
+	if !isMap(&v) {
+		log.Fatal("Manifest should be a valid JSON, see https://vitejs.dev/guide/backend-integration.html")
+	}
+
+	t := mapManifest(v)
+
+	fmt.Println(t)
+
+	return t, nil
 }
