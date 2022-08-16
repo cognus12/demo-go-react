@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io/fs"
-	"reflect"
 )
 
 func read(fsys fs.FS, path string) ([]byte, error) {
@@ -14,16 +13,8 @@ func read(fsys fs.FS, path string) ([]byte, error) {
 }
 
 func mapChunck(c map[string]any, dist AssetsData) {
-
-	v := reflect.ValueOf(c)
-
-	for _, k := range v.MapKeys() {
-		key := k.Convert(v.Type().Key())
-		value := v.MapIndex(key).Elem()
-
-		if !value.IsZero() {
-			(dist)[key.String()] = v.MapIndex(key).Interface()
-		}
+	for k, v := range c {
+		dist[k] = v
 	}
 }
 
@@ -64,18 +55,25 @@ func mapManifest(m any) (AssetsData, []AssetsData, error) {
 	return target, chuncks, nil
 }
 
-func parseManifest(dist *fs.FS, path string) (AssetsData, []AssetsData, error) {
+func (v *Vite) parseManifest(dist *fs.FS, path string) error {
 	bytes, err := read(*dist, path)
 
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	var jsonData any
 
 	json.Unmarshal(bytes, &jsonData)
 
-	t, chuncks, err := mapManifest(jsonData)
+	data, chuncks, err := mapManifest(jsonData)
 
-	return t, chuncks, err
+	if err != nil {
+		return err
+	}
+
+	v.data = data
+	v.chucks = &chuncks
+
+	return nil
 }

@@ -57,15 +57,11 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 	if v.Env == "production" {
 		v.AssetsDir = cfg.AssetsDir
 
-		resources, chuncks, err := parseManifest(&v.DistFS, path.Join(cfg.OutDir, "manifest.json"))
+		err := v.parseManifest(&v.DistFS, path.Join(cfg.OutDir, "manifest.json"))
 
 		if err != nil {
 			return nil, err
 		}
-
-		v.data = resources
-
-		v.chucks = &chuncks
 
 		v.AssetsPath = path.Join(v.ProjectPath, v.OutDir, v.AssetsDir)
 	}
