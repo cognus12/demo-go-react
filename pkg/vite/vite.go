@@ -1,27 +1,13 @@
 package vite
 
 import (
-	"errors"
 	"fmt"
 	"io/fs"
 	"log"
 	"path"
 )
 
-type Chunck struct {
-	Src            string   `json:"src"`
-	File           string   `json:"file"`
-	CSS            []string `json:"css"`
-	Assets         []string `json:"assets"`
-	IsEntry        bool     `json:"isEntry"`
-	IsDynamicEntry bool     `json:"isDynamicEntry"`
-	Imports        []string `json:"imports"`
-	DynamicImports []string `json:"dynamicImports"`
-}
-
-type ManifestMap = map[string]*Chunck
-type TemplateArgs = map[string]interface{}
-
+type HTMLData = map[string]any
 type Vite struct {
 	MainEntry string
 	CSS       []string
@@ -43,17 +29,16 @@ type Vite struct {
 	MainEntryPath string
 	DevServerURL  string
 
-	Data map[string]any
+	data HTMLData
 }
 
 var v *Vite
 
-func NewVite(cfg *ViteConfig, data map[string]any) (*Vite, error) {
+func NewVite(cfg *ViteConfig) (*Vite, error) {
 	setConfigDefaults(cfg)
 
 	v = &Vite{
 		OutDir: cfg.OutDir,
-		Data:   data,
 	}
 
 	v.Env = cfg.Env
@@ -74,21 +59,13 @@ func NewVite(cfg *ViteConfig, data map[string]any) (*Vite, error) {
 
 		v.AssetsDir = cfg.AssetsDir
 
-		chunks, err := parseManifest(&v.DistFS, path.Join(cfg.OutDir, "manifest.json"))
+		resources, err := parseManifest(&v.DistFS, path.Join(cfg.OutDir, "manifest.json"))
 
 		if err != nil {
 			return nil, err
 		}
 
-		mainChunck, ok := chunks[v.MainEntryPath]
-
-		if !ok {
-			return nil, errors.New("Wrong main chunk name")
-		}
-
-		v.MainEntry = mainChunck.File
-		v.CSS = mainChunck.CSS
-		v.Imports = mainChunck.Imports
+		v.data = resources
 
 		v.AssetsPath = path.Join(v.ProjectPath, v.OutDir, v.AssetsDir)
 	}

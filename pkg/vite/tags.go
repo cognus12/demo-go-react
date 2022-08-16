@@ -28,13 +28,14 @@ func (v *Vite) Tags() (template.HTML, error) {
 
 	if v.Env == "production" {
 		b.WriteString(`
-			<script type="module" crossorigin src="/{{ .MainEntry }}"></script>
+			{{ $data := .Data }}
+			<script type="module" crossorigin src="/{{ $data.file }}"></script>
 			
-			{{ range $href := .Imports }}
+			{{ range $href := $data.imports }}
 				<link rel="modulepreload" href="/{{ $href }}">
 			{{ end }}
 			
-			{{ range $href := .CSS }}
+			{{ range $href := $data.css }}
 				<link rel="stylesheet" href="/{{ $href }}">
 			{{ end }}
 		`)

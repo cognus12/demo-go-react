@@ -3,9 +3,7 @@ package vite
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/fs"
-	"log"
 	"reflect"
 )
 
@@ -33,113 +31,7 @@ func processReflectedBool(v *reflect.Value) (target bool) {
 	return
 }
 
-func processReflectedString(v *reflect.Value) (target string) {
-	target = (*v).String()
-
-	return
-}
-
-func mapReflectedStringSlice(v *reflect.Value) (target []string) {
-	if (*v).Kind() != reflect.Slice {
-		return target
-	}
-
-	if (*v).Len() != 0 {
-		for i := 0; i < (*v).Len(); i++ {
-			target = append(target, (*v).Index(i).Elem().String())
-		}
-	}
-
-	return
-}
-
-func mapReflectedChunk(c reflect.Value) *Chunck {
-	if !isMap(&c) {
-		return nil
-	}
-
-	keys := c.MapKeys()
-	target := Chunck{}
-
-	for _, k := range keys {
-		kk := k.Convert(c.Type().Key())
-		value := c.MapIndex(kk).Elem()
-
-		key := kk.String()
-
-		if key == "file" {
-			target.File = processReflectedString(&value)
-		}
-
-		if key == "src" {
-			target.Src = processReflectedString(&value)
-		}
-
-		if key == "isEntry" {
-			target.IsEntry = processReflectedBool(&value)
-		}
-
-		if key == "isDynamicEntry" {
-			target.IsDynamicEntry = processReflectedBool(&value)
-		}
-
-		if key == "css" {
-			target.CSS = mapReflectedStringSlice(&value)
-		}
-
-		if key == "assets" {
-			target.Assets = mapReflectedStringSlice(&value)
-		}
-
-		if key == "imports" {
-			target.Imports = mapReflectedStringSlice(&value)
-		}
-
-		if key == "dynamicImports" {
-			target.DynamicImports = mapReflectedStringSlice(&value)
-		}
-	}
-
-	return &target
-}
-
-func parseManifest(dist *fs.FS, path string) (ManifestMap, error) {
-	bytes, err := read(*dist, path)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var jsonData interface{}
-	json.Unmarshal(bytes, &jsonData)
-	reflectedManifest := reflect.ValueOf(jsonData)
-
-	if !isMap(&reflectedManifest) {
-		return nil, errors.New("Provided manifest is not valid json")
-	}
-
-	var target ManifestMap = map[string]*Chunck{}
-
-	keys := reflectedManifest.MapKeys()
-
-	for _, k := range keys {
-		key := k.Convert(reflectedManifest.Type().Key())
-		value := reflectedManifest.MapIndex(key).Elem()
-		target[key.String()] = mapReflectedChunk(value)
-	}
-
-	return target, nil
-}
-
-func printMap(m map[string]interface{}) {
-	for k, v := range m {
-		fmt.Println(k, v)
-	}
-}
-
-type mtarget = map[string]interface{}
-
-func mapChunck(c reflect.Value, dist mtarget) {
+func mapChunck(c reflect.Value, dist HTMLData) {
 	for _, k := range c.MapKeys() {
 		key := k.Convert(c.Type().Key())
 		value := c.MapIndex(key).Elem()
@@ -150,31 +42,46 @@ func mapChunck(c reflect.Value, dist mtarget) {
 	}
 }
 
-func mapManifest(m reflect.Value) mtarget {
-	target := mtarget{}
-	rest := []mtarget{}
-	keys := m.MapKeys()
+func detectEntry(c reflect.Value) bool {
+	val := c.MapIndex(reflect.ValueOf("isEntry").Convert(c.Type().Key()))
+
+	if !val.IsValid() {
+		return false
+	}
+
+	if val.IsZero() {
+		return false
+	}
+
+	val = val.Elem()
+
+	if processReflectedBool(&val) {
+		return true
+	}
+
+	return false
+}
+
+func mapManifest(m any) (HTMLData, error) {
+	v := reflect.ValueOf(m)
+
+	if !isMap(&v) {
+		return nil, errors.New("Manifest should be a valid JSON, see https://vitejs.dev/guide/backend-integration.html")
+	}
+
+	target := HTMLData{}
+	rest := []HTMLData{}
+	keys := v.MapKeys()
 
 	for _, k := range keys {
-		key := k.Convert(m.Type().Key())
-		chunck := m.MapIndex(key).Elem()
-		var isEntry bool = false
-
-		for _, kk := range chunck.MapKeys() {
-			key := kk.Convert(chunck.Type().Key())
-			value := chunck.MapIndex(key).Elem()
-			if key.String() == "isEntry" {
-				val := processReflectedBool(&value)
-				if val {
-					isEntry = true
-				}
-			}
-		}
+		key := k.Convert(v.Type().Key())
+		chunck := v.MapIndex(key).Elem()
+		var isEntry bool = detectEntry(chunck)
 
 		if isEntry {
 			mapChunck(chunck, target)
 		} else {
-			var node = make(mtarget)
+			var node = make(HTMLData)
 			mapChunck(chunck, node)
 			rest = append(rest, node)
 		}
@@ -182,28 +89,21 @@ func mapManifest(m reflect.Value) mtarget {
 
 	target["nodes"] = rest
 
-	return target
+	return target, nil
 }
 
-func parseManifestNew(dist *fs.FS, path string) (mtarget, error) {
+func parseManifest(dist *fs.FS, path string) (HTMLData, error) {
 	bytes, err := read(*dist, path)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var jsonData interface{}
+	var jsonData any
+
 	json.Unmarshal(bytes, &jsonData)
 
-	v := reflect.ValueOf(jsonData)
+	t, err := mapManifest(jsonData)
 
-	if !isMap(&v) {
-		log.Fatal("Manifest should be a valid JSON, see https://vitejs.dev/guide/backend-integration.html")
-	}
-
-	t := mapManifest(v)
-
-	fmt.Println(t)
-
-	return t, nil
+	return t, err
 }
