@@ -15,11 +15,11 @@ var reservedKeys = map[string]bool{
 	"assets":         true,
 }
 
-func (v *Vite) Data() HTMLData {
+func (v *Vite) Data() AssetsData {
 	return v.data
 }
 
-func (v *Vite) SetArgs(vars HTMLData) error {
+func (v *Vite) SetArgs(vars AssetsData) error {
 	for k, val := range vars {
 		if !reservedKeys[k] {
 			v.data[k] = val

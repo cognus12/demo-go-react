@@ -7,7 +7,7 @@ import (
 	"path"
 )
 
-type HTMLData = map[string]any
+type AssetsData = map[string]any
 type Vite struct {
 	MainEntry string
 	CSS       []string
@@ -29,7 +29,8 @@ type Vite struct {
 	MainEntryPath string
 	DevServerURL  string
 
-	data HTMLData
+	data   AssetsData
+	chucks *[]AssetsData
 }
 
 var v *Vite
@@ -44,7 +45,6 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 	v.Env = cfg.Env
 	v.Platform = cfg.Platform
 	v.ProjectPath = cfg.ProjectDir
-
 	distFs, err := fs.Sub(cfg.FS, cfg.ProjectDir)
 
 	if err != nil {
@@ -52,20 +52,20 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 	}
 
 	v.DistFS = distFs
-
 	v.MainEntryPath = fmt.Sprintf("%v/%v", cfg.SrcDir, cfg.MainEntry)
 
 	if v.Env == "production" {
-
 		v.AssetsDir = cfg.AssetsDir
 
-		resources, err := parseManifest(&v.DistFS, path.Join(cfg.OutDir, "manifest.json"))
+		resources, chuncks, err := parseManifest(&v.DistFS, path.Join(cfg.OutDir, "manifest.json"))
 
 		if err != nil {
 			return nil, err
 		}
 
 		v.data = resources
+
+		v.chucks = &chuncks
 
 		v.AssetsPath = path.Join(v.ProjectPath, v.OutDir, v.AssetsDir)
 	}

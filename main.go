@@ -3,20 +3,20 @@ package main
 import (
 	"demo-go-react/internal/hello"
 	"demo-go-react/pkg/vite"
+	"embed"
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 )
 
 var index *template.Template
 
 // for production mode remove space before go:embed, uncomment var
-// go:embed frontend/dist template.html
-// var frontend embed.FS
+//go:embed frontend/dist template.html
+var frontend embed.FS
 
 // for dev mode
-var frontend = os.DirFS("frontend")
+// var frontend = os.DirFS("frontend")
 
 var Config = vite.ViteConfig{
 	FS:         frontend,
@@ -28,12 +28,22 @@ var Config = vite.ViteConfig{
 func main() {
 	log.Println("Start server on localhost:8000")
 
-	// any custom variables to be passed to template
 	data := map[string]any{
 		"title": "Go-React App",
 	}
 
-	v, err := vite.NewVite(&Config, data)
+	v, err := vite.NewVite(&Config)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// any custom variables to be passed to template
+	err = v.SetArgs(data)
+
+	if err != nil {
+		log.Println(err)
+	}
 
 	if err != nil {
 		log.Fatal(err)

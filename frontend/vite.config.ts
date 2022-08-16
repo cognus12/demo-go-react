@@ -13,6 +13,7 @@ export default defineConfig({
       },
     },
   },
+  // TODO remove
   server: {
     proxy: {
       '/api': {

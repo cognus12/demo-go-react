@@ -13,97 +13,69 @@ func read(fsys fs.FS, path string) ([]byte, error) {
 	return content, err
 }
 
-func isMap(v *reflect.Value) bool {
-	if (*v).Kind() == reflect.Map {
-		return true
-	}
+func mapChunck(c map[string]any, dist AssetsData) {
 
-	return false
-}
+	v := reflect.ValueOf(c)
 
-func processReflectedBool(v *reflect.Value) (target bool) {
-	if (*v).Kind() == reflect.Bool {
-		target = (*v).Bool()
-	} else {
-		target = false
-	}
-
-	return
-}
-
-func mapChunck(c reflect.Value, dist HTMLData) {
-	for _, k := range c.MapKeys() {
-		key := k.Convert(c.Type().Key())
-		value := c.MapIndex(key).Elem()
+	for _, k := range v.MapKeys() {
+		key := k.Convert(v.Type().Key())
+		value := v.MapIndex(key).Elem()
 
 		if !value.IsZero() {
-			(dist)[key.String()] = c.MapIndex(key).Interface()
+			(dist)[key.String()] = v.MapIndex(key).Interface()
 		}
 	}
 }
 
-func detectEntry(c reflect.Value) bool {
-	val := c.MapIndex(reflect.ValueOf("isEntry").Convert(c.Type().Key()))
+func mapManifest(m any) (AssetsData, []AssetsData, error) {
+	manifest, ok := m.(map[string]any)
 
-	if !val.IsValid() {
-		return false
+	if !ok {
+		return nil, nil, errors.New("Manifest should be a valid JSON, see https://vitejs.dev/guide/backend-integration.html")
 	}
 
-	if val.IsZero() {
-		return false
-	}
+	raw := AssetsData{}
+	chuncks := []AssetsData{}
 
-	val = val.Elem()
+	for _, chunck := range manifest {
+		m, ok := chunck.(map[string]any)
 
-	if processReflectedBool(&val) {
-		return true
-	}
+		if ok {
+			isEntry, ok := m["isEntry"].(bool)
 
-	return false
-}
-
-func mapManifest(m any) (HTMLData, error) {
-	v := reflect.ValueOf(m)
-
-	if !isMap(&v) {
-		return nil, errors.New("Manifest should be a valid JSON, see https://vitejs.dev/guide/backend-integration.html")
-	}
-
-	target := HTMLData{}
-	rest := []HTMLData{}
-	keys := v.MapKeys()
-
-	for _, k := range keys {
-		key := k.Convert(v.Type().Key())
-		chunck := v.MapIndex(key).Elem()
-		var isEntry bool = detectEntry(chunck)
-
-		if isEntry {
-			mapChunck(chunck, target)
-		} else {
-			var node = make(HTMLData)
-			mapChunck(chunck, node)
-			rest = append(rest, node)
+			if ok && isEntry {
+				mapChunck(m, raw)
+			} else {
+				var node = make(AssetsData)
+				mapChunck(m, node)
+				chuncks = append(chuncks, node)
+			}
 		}
+
 	}
 
-	target["nodes"] = rest
+	target := map[string]any{}
 
-	return target, nil
+	target["file"] = raw["file"]
+	target["css"] = raw["css"]
+	target["assets"] = raw["assets"]
+	target["imports"] = raw["imports"]
+
+	return target, chuncks, nil
 }
 
-func parseManifest(dist *fs.FS, path string) (HTMLData, error) {
+func parseManifest(dist *fs.FS, path string) (AssetsData, []AssetsData, error) {
 	bytes, err := read(*dist, path)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var jsonData any
 
 	json.Unmarshal(bytes, &jsonData)
 
-	t, err := mapManifest(jsonData)
+	t, chuncks, err := mapManifest(jsonData)
 
-	return t, err
+	return t, chuncks, err
 }

@@ -35,6 +35,7 @@ yarn-error.log
 testem.log
 /typings
 /temp
+todo.md
 
 # System Files
 .DS_Store
