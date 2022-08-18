@@ -1,10 +1,5 @@
 package vite
 
-import (
-	"errors"
-	"fmt"
-)
-
 var reservedKeys = map[string]bool{
 	"file":           true,
 	"src":            true,
@@ -24,7 +19,7 @@ func (v *Vite) SetArgs(vars AssetsData) error {
 		if !reservedKeys[k] {
 			v.data[k] = val
 		} else {
-			return errors.New(fmt.Sprintf("Field %v is readonly", k))
+			return createReadOnlyError(k)
 		}
 	}
 
@@ -35,7 +30,7 @@ func (v *Vite) SetArg(k string, val any) error {
 	if !reservedKeys[k] {
 		v.data[k] = val
 	} else {
-		return errors.New(fmt.Sprintf("Field %v is readonly", k))
+		return createReadOnlyError(k)
 	}
 
 	return nil

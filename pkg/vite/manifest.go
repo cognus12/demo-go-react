@@ -18,11 +18,37 @@ func mapChunck(c map[string]any, dist AssetsData) {
 	}
 }
 
+func checkBool(v any) bool {
+	vv, ok := v.(bool)
+
+	if ok && vv {
+		return vv
+	}
+
+	return false
+}
+
+func processChunck(chunck, data AssetsData, chunckList *[]AssetsData) error {
+	if checkBool(chunck["isEntry"]) {
+		if checkBool(data["isEntry"]) {
+			return errors.New(MULTIPLE_ENTRY_ERR)
+		}
+		mapChunck(chunck, data)
+		*chunckList = append(*chunckList, chunck)
+	} else {
+		var node = make(AssetsData)
+		mapChunck(chunck, node)
+		*chunckList = append(*chunckList, node)
+	}
+
+	return nil
+}
+
 func mapManifest(m any) (AssetsData, []AssetsData, error) {
 	manifest, ok := m.(map[string]any)
 
 	if !ok {
-		return nil, nil, errors.New("Manifest should be a valid JSON, see https://vitejs.dev/guide/backend-integration.html")
+		return nil, nil, errors.New(INVALID_MANIFEST_STRUCT)
 	}
 
 	raw := AssetsData{}
@@ -30,27 +56,23 @@ func mapManifest(m any) (AssetsData, []AssetsData, error) {
 
 	for _, chunck := range manifest {
 		m, ok := chunck.(map[string]any)
-
 		if ok {
-			isEntry, ok := m["isEntry"].(bool)
-
-			if ok && isEntry {
-				mapChunck(m, raw)
-			} else {
-				var node = make(AssetsData)
-				mapChunck(m, node)
-				chuncks = append(chuncks, node)
+			err := processChunck(m, raw, &chuncks)
+			if err != nil {
+				return nil, nil, err
 			}
-		}
+		} else {
 
+			return nil, nil, errors.New(INVALID_MANIFEST_STRUCT)
+		}
 	}
 
 	target := map[string]any{}
-
 	target["file"] = raw["file"]
 	target["css"] = raw["css"]
 	target["assets"] = raw["assets"]
 	target["imports"] = raw["imports"]
+	target["dynamicImports"] = raw["dynamicImports"]
 
 	return target, chuncks, nil
 }
