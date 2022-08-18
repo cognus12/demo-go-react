@@ -2,6 +2,7 @@ package vite
 
 import (
 	"fmt"
+	"html/template"
 	"io/fs"
 	"log"
 	"path"
@@ -31,6 +32,8 @@ type Vite struct {
 
 	data   AssetsData
 	chucks *[]AssetsData
+
+	Template *template.Template
 }
 
 var v *Vite
@@ -40,12 +43,15 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 
 	v = &Vite{
 		OutDir: cfg.OutDir,
+		data:   AssetsData{},
 	}
 
 	v.Env = cfg.Env
 	v.Platform = cfg.Platform
 	v.ProjectPath = cfg.ProjectDir
 	distFs, err := fs.Sub(cfg.FS, cfg.ProjectDir)
+
+	v.Template = cfg.Template
 
 	if err != nil {
 		log.Fatal(err)

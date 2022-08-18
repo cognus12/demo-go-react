@@ -1,6 +1,7 @@
 package vite
 
 import (
+	"html/template"
 	"io/fs"
 )
 
@@ -28,6 +29,7 @@ type ViteConfig struct {
 	//
 	DevServerPort string
 	//
+	Template *template.Template
 }
 
 var defaults = map[string]string{
