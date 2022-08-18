@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io/fs"
-	"reflect"
 )
 
 func read(fsys fs.FS, path string) ([]byte, error) {
@@ -13,118 +12,90 @@ func read(fsys fs.FS, path string) ([]byte, error) {
 	return content, err
 }
 
-func isMap(v *reflect.Value) bool {
-	if (*v).Kind() == reflect.Map {
-		return true
+func mapChunck(c map[string]any, dist AssetsData) {
+	for k, v := range c {
+		dist[k] = v
+	}
+}
+
+func checkBool(v any) bool {
+	vv, ok := v.(bool)
+
+	if ok && vv {
+		return vv
 	}
 
 	return false
 }
 
-func processReflectedBool(v *reflect.Value) (target bool) {
-	if (*v).Kind() == reflect.Bool {
-		target = (*v).Bool()
+func processChunck(chunck, data AssetsData, chunckList *[]AssetsData) error {
+	if checkBool(chunck["isEntry"]) {
+		if checkBool(data["isEntry"]) {
+			return errors.New(MULTIPLE_ENTRY_ERR)
+		}
+		mapChunck(chunck, data)
+		*chunckList = append(*chunckList, chunck)
 	} else {
-		target = false
+		var node = make(AssetsData)
+		mapChunck(chunck, node)
+		*chunckList = append(*chunckList, node)
 	}
 
-	return
+	return nil
 }
 
-func processReflectedString(v *reflect.Value) (target string) {
-	target = (*v).String()
+func mapManifest(m any) (AssetsData, []AssetsData, error) {
+	manifest, ok := m.(map[string]any)
 
-	return
+	if !ok {
+		return nil, nil, errors.New(INVALID_MANIFEST_STRUCT)
+	}
+
+	raw := AssetsData{}
+	chuncks := []AssetsData{}
+
+	for _, chunck := range manifest {
+		m, ok := chunck.(map[string]any)
+		if ok {
+			err := processChunck(m, raw, &chuncks)
+			if err != nil {
+				return nil, nil, err
+			}
+		} else {
+
+			return nil, nil, errors.New(INVALID_MANIFEST_STRUCT)
+		}
+	}
+
+	target := map[string]any{}
+	target["file"] = raw["file"]
+	target["css"] = raw["css"]
+	target["assets"] = raw["assets"]
+	target["imports"] = raw["imports"]
+	target["dynamicImports"] = raw["dynamicImports"]
+
+	return target, chuncks, nil
 }
 
-func mapReflectedStringSlice(v *reflect.Value) (target []string) {
-	if (*v).Kind() != reflect.Slice {
-		return target
-	}
-
-	if (*v).Len() != 0 {
-		for i := 0; i < (*v).Len(); i++ {
-			target = append(target, (*v).Index(i).Elem().String())
-		}
-	}
-
-	return
-}
-
-func mapReflectedChunk(c reflect.Value) *Chunck {
-	if !isMap(&c) {
-		return nil
-	}
-
-	keys := c.MapKeys()
-	target := Chunck{}
-
-	for _, k := range keys {
-		kk := k.Convert(c.Type().Key())
-		value := c.MapIndex(kk).Elem()
-
-		key := kk.String()
-
-		if key == "file" {
-			target.File = processReflectedString(&value)
-		}
-
-		if key == "src" {
-			target.Src = processReflectedString(&value)
-		}
-
-		if key == "isEntry" {
-			target.IsEntry = processReflectedBool(&value)
-		}
-
-		if key == "isDynamicEntry" {
-			target.IsDynamicEntry = processReflectedBool(&value)
-		}
-
-		if key == "css" {
-			target.CSS = mapReflectedStringSlice(&value)
-		}
-
-		if key == "assets" {
-			target.Assets = mapReflectedStringSlice(&value)
-		}
-
-		if key == "imports" {
-			target.Imports = mapReflectedStringSlice(&value)
-		}
-
-		if key == "dynamicImports" {
-			target.DynamicImports = mapReflectedStringSlice(&value)
-		}
-	}
-
-	return &target
-}
-
-func parseManifest(dist *fs.FS, path string) (ManifestMap, error) {
+func (v *Vite) parseManifest(dist *fs.FS, path string) error {
 	bytes, err := read(*dist, path)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var jsonData interface{}
+	var jsonData any
+
 	json.Unmarshal(bytes, &jsonData)
-	reflectedManifest := reflect.ValueOf(jsonData)
 
-	if !isMap(&reflectedManifest) {
-		return nil, errors.New("Provided manifest is not valid json")
+	data, chuncks, err := mapManifest(jsonData)
+
+	if err != nil {
+		return err
 	}
 
-	var target ManifestMap = map[string]*Chunck{}
+	v.data = data
+	v.chucks = &chuncks
 
-	keys := reflectedManifest.MapKeys()
-
-	for _, k := range keys {
-		key := k.Convert(reflectedManifest.Type().Key())
-		value := reflectedManifest.MapIndex(key).Elem()
-		target[key.String()] = mapReflectedChunk(value)
-	}
-
-	return target, nil
+	return nil
 }

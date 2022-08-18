@@ -1,9 +1,0 @@
-{
-    "tasks": {
-        "client:dev": "deno run --allow-read=. --allow-write=. --allow-run scripts/npm-dev.ts",
-        "client:build": "deno run --allow-read=. --allow-write=. --allow-run scripts/npm-build.ts",
-        "go:full": "export MODE=full && deno run --allow-read=. --allow-write=. --allow-run scripts/go-run.ts",
-        "go:api": "export MODE=api && deno run --allow-read=. --allow-write=. --allow-run scripts/go-run.ts",
-        "serv": "deno task client:build && deno task go:full"
-    }
-  }
