@@ -18,7 +18,7 @@ var Config = vite.ViteConfig{
 	FS:         frontend,
 	ProjectDir: "frontend",
 	OutDir:     "dist",
-	Env:        "development",
+	// Env:        "development",
 }
 
 func main() {

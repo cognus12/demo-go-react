@@ -12,8 +12,6 @@ type ViteConfig struct {
 	Env string
 	// react, vue, svelte, default - react
 	Platform string
-	// main chunk name, default - src/main.tsx
-	MainEntry string
 	// path to frontend app folder relative to the root (default - frontend)
 	ProjectDir string
 	//
@@ -28,24 +26,46 @@ type ViteConfig struct {
 	DevServerHost string
 	//
 	DevServerPort string
+
 	//
 	Template *template.Template
 }
 
 var defaults = map[string]string{
-	"Env":                 "production",
-	"Platform":            "react",
-	"MainEntry":           "main.tsx",
+	"Env":      "production",
+	"Platform": "react",
+	"SrcDir":   "src",
+	"OutDir":   "dist",
+
 	"AssetsURLPrefixProd": "/assets/",
 	"AssetsURLPrefixDev":  "/src/",
-	"SrcDir":              "src",
-	"OutDir":              "dist",
-	"AssetsDir":           "assets",
-	"DevServerHost":       "localhost",
-	"DevServerPort":       "3000",
+
+	"AssetsDir":     "assets",
+	"DevServerHost": "localhost",
+	"DevServerPort": "3000",
 }
 
-func setConfigDefaults(cfg *ViteConfig) {
+func (cfg *ViteConfig) setProdDefaults() {
+	if cfg.AssetsURLPrefix == "" {
+		cfg.AssetsURLPrefix = defaults["AssetsURLPrefixProd"]
+	}
+}
+
+func (cfg *ViteConfig) setDevDefaults() {
+	if cfg.DevServerHost == "" {
+		cfg.DevServerHost = defaults["DevServerHost"]
+	}
+
+	if cfg.DevServerPort == "" {
+		cfg.DevServerPort = defaults["DevServerPort"]
+	}
+
+	if cfg.AssetsURLPrefix == "" {
+		cfg.AssetsURLPrefix = defaults["AssetsURLPrefixDev"]
+	}
+}
+
+func (cfg *ViteConfig) setDefaults() {
 	if cfg.Env == "" {
 		cfg.Env = defaults["Env"]
 	}
@@ -54,35 +74,15 @@ func setConfigDefaults(cfg *ViteConfig) {
 		cfg.Platform = defaults["Platform"]
 	}
 
-	if cfg.MainEntry == "" {
-		cfg.MainEntry = defaults["MainEntry"]
-	}
-
 	if cfg.AssetsDir == "" {
 		cfg.AssetsDir = defaults["AssetsDir"]
 	}
 
-	if cfg.SrcDir == "" {
-		cfg.SrcDir = defaults["SrcDir"]
-	}
-
 	if cfg.Env == "production" {
-		if cfg.AssetsURLPrefix == "" {
-			cfg.AssetsURLPrefix = defaults["AssetsURLPrefixProd"]
-		}
+		cfg.setProdDefaults()
 	}
 
 	if cfg.Env == "development" {
-		if cfg.DevServerHost == "" {
-			cfg.DevServerHost = defaults["DevServerHost"]
-		}
-
-		if cfg.DevServerPort == "" {
-			cfg.DevServerPort = defaults["DevServerPort"]
-		}
-
-		if cfg.AssetsURLPrefix == "" {
-			cfg.AssetsURLPrefix = defaults["AssetsURLPrefixDev"]
-		}
+		cfg.setDevDefaults()
 	}
 }

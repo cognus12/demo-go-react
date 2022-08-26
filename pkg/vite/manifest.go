@@ -3,6 +3,7 @@ package vite
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 )
 
@@ -94,8 +95,10 @@ func (v *Vite) parseManifest(dist *fs.FS, path string) error {
 		return err
 	}
 
-	v.data = data
-	v.chucks = &chuncks
+	e := v.setArgs(data, false)
+
+	fmt.Println(e)
+	v.chuncks = &chuncks
 
 	return nil
 }

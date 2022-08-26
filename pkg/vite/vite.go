@@ -4,17 +4,11 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
-	"log"
 	"path"
 )
 
 type AssetsData = map[string]any
 type Vite struct {
-	MainEntry string
-	CSS       []string
-	Assets    []string
-	Imports   []string
-
 	FS          fs.FS
 	DistFS      fs.FS
 	Env         string
@@ -30,8 +24,8 @@ type Vite struct {
 	MainEntryPath string
 	DevServerURL  string
 
-	data   AssetsData
-	chucks *[]AssetsData
+	data    AssetsData
+	chuncks *[]AssetsData
 
 	Template *template.Template
 }
@@ -39,7 +33,7 @@ type Vite struct {
 var v *Vite
 
 func NewVite(cfg *ViteConfig) (*Vite, error) {
-	setConfigDefaults(cfg)
+	cfg.setDefaults()
 
 	v = &Vite{
 		OutDir: cfg.OutDir,
@@ -49,16 +43,15 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 	v.Env = cfg.Env
 	v.Platform = cfg.Platform
 	v.ProjectPath = cfg.ProjectDir
-	distFs, err := fs.Sub(cfg.FS, cfg.ProjectDir)
-
 	v.Template = cfg.Template
 
+	distFs, err := fs.Sub(cfg.FS, cfg.ProjectDir)
+
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	v.DistFS = distFs
-	v.MainEntryPath = fmt.Sprintf("%v/%v", cfg.SrcDir, cfg.MainEntry)
 
 	if v.Env == "production" {
 		v.AssetsDir = cfg.AssetsDir
