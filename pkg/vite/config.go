@@ -12,12 +12,8 @@ type ViteConfig struct {
 	Env string
 	// react, vue, svelte, default - react
 	Platform string
-	// path to frontend app folder relative to the root (default - frontend)
-	ProjectDir string
 	//
 	SrcDir string
-	// relative path to FrontendFolder, eg dist
-	OutDir string
 	//
 	AssetsDir string
 	// AssetsURLPrefix (/assets/ for prod, /src/ for dev)
@@ -26,7 +22,6 @@ type ViteConfig struct {
 	DevServerHost string
 	//
 	DevServerPort string
-
 	//
 	Template *template.Template
 }
@@ -35,7 +30,6 @@ var defaults = map[string]string{
 	"Env":      "production",
 	"Platform": "react",
 	"SrcDir":   "src",
-	"OutDir":   "dist",
 
 	"AssetsURLPrefixProd": "/assets/",
 	"AssetsURLPrefixDev":  "/src/",
@@ -62,6 +56,10 @@ func (cfg *ViteConfig) setDevDefaults() {
 
 	if cfg.AssetsURLPrefix == "" {
 		cfg.AssetsURLPrefix = defaults["AssetsURLPrefixDev"]
+	}
+
+	if cfg.SrcDir == "" {
+		cfg.SrcDir = defaults["SrcDir"]
 	}
 }
 

@@ -10,20 +10,17 @@ import (
 
 var index *template.Template
 
-// for development need to remove /dist (if there is no dist folder at the moment)
-//go:embed frontend/dist template.html
-var frontend embed.FS
+//go:embed static template.html
+var fs embed.FS
 
 var Config = vite.ViteConfig{
-	FS:         frontend,
-	ProjectDir: "frontend",
-	OutDir:     "dist",
-	// Env:        "development",
+	FS: fs,
+	// Env: "development",
 }
 
 func main() {
 	var templateErr error
-	Config.Template, templateErr = template.ParseFS(frontend, "template.html")
+	Config.Template, templateErr = template.ParseFS(fs, "template.html")
 
 	if templateErr != nil {
 		log.Fatal("Template loading error: ", templateErr)
