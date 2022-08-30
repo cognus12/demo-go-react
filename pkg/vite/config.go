@@ -6,43 +6,35 @@ import (
 )
 
 type ViteConfig struct {
-	//
-	FS fs.FS
+	// file system of project root (required)
+	RootFS fs.FS
+	// pointer to html template (required)
+	Template *template.Template
+	// name of frontend source folder (need for development mode, default - src)
+	SrcDir string
 	// production or development, default - production
 	Env string
 	// react, vue, svelte, default - react
 	Platform string
-	// path to frontend app folder relative to the root (default - frontend)
-	ProjectDir string
-	//
-	SrcDir string
-	// relative path to FrontendFolder, eg dist
-	OutDir string
-	//
+	// name of static assets folder (default - assets)
 	AssetsDir string
 	// AssetsURLPrefix (/assets/ for prod, /src/ for dev)
 	AssetsURLPrefix string
-	//
+	// host of dev server (default - localhost)
 	DevServerHost string
-	//
+	// port of dev server (default - 3000)
 	DevServerPort string
-
-	//
-	Template *template.Template
 }
 
 var defaults = map[string]string{
-	"Env":      "production",
-	"Platform": "react",
-	"SrcDir":   "src",
-	"OutDir":   "dist",
-
+	"Env":                 "production",
+	"Platform":            "react",
+	"SrcDir":              "src",
 	"AssetsURLPrefixProd": "/assets/",
 	"AssetsURLPrefixDev":  "/src/",
-
-	"AssetsDir":     "assets",
-	"DevServerHost": "localhost",
-	"DevServerPort": "3000",
+	"AssetsDir":           "assets",
+	"DevServerHost":       "localhost",
+	"DevServerPort":       "3000",
 }
 
 func (cfg *ViteConfig) setProdDefaults() {
@@ -62,6 +54,10 @@ func (cfg *ViteConfig) setDevDefaults() {
 
 	if cfg.AssetsURLPrefix == "" {
 		cfg.AssetsURLPrefix = defaults["AssetsURLPrefixDev"]
+	}
+
+	if cfg.SrcDir == "" {
+		cfg.SrcDir = defaults["SrcDir"]
 	}
 }
 

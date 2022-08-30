@@ -3,7 +3,6 @@ package app
 import (
 	"demo-go-react/internal/hello"
 	"demo-go-react/pkg/vite"
-	"fmt"
 	"log"
 	"net/http"
 )
@@ -27,8 +26,6 @@ func Run(cfg *vite.ViteConfig) {
 	if err != nil {
 		log.Println(err)
 	}
-
-	fmt.Println(v.Data())
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {

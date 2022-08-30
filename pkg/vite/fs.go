@@ -9,10 +9,10 @@ import (
 
 func (v *Vite) FileServer() http.Handler {
 	if v.Env == "development" {
-		return http.StripPrefix("/", &DevProxy{url: v.DevServerURL})
+		return http.StripPrefix("/", &devProxy{url: v.DevServerURL})
 	}
 
-	dist, err := fs.Sub(v.DistFS, path.Join(v.OutDir, v.AssetsDir))
+	dist, err := fs.Sub(v.DistFS, path.Join(v.AssetsDir))
 	dirToServ := http.FS(dist)
 	server := http.StripPrefix(v.AssetsURLPrefix, http.FileServer(dirToServ))
 

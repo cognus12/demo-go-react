@@ -50,8 +50,6 @@ func TestDevProx(t *testing.T) {
 
 	data, _ := ioutil.ReadAll(res.Body)
 
-	fmt.Println(res)
-
 	if string(data) != TEST_RES_DATA {
 		t.Errorf("expected %v got %v", TEST_RES_DATA, string(data))
 	}

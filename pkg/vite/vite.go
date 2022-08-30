@@ -1,6 +1,7 @@
 package vite
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -9,43 +10,42 @@ import (
 
 type AssetsData = map[string]any
 type Vite struct {
-	FS          fs.FS
-	DistFS      fs.FS
-	Env         string
-	Platform    string
-	ProjectPath string
-
+	RootFS          fs.FS
+	DistFS          fs.FS
+	Env             string
+	Platform        string
 	SrcDir          string
-	OutDir          string
 	AssetsPath      string
 	AssetsDir       string
 	AssetsURLPrefix string
-
-	MainEntryPath string
-	DevServerURL  string
-
-	data    AssetsData
-	chuncks *[]AssetsData
-
-	Template *template.Template
+	Template        *template.Template
+	DevServerURL    string
+	data            AssetsData
+	chuncks         *[]AssetsData
 }
 
 var v *Vite
 
 func NewVite(cfg *ViteConfig) (*Vite, error) {
+	if cfg.RootFS == nil {
+		return nil, errors.New(NO_ROOT_FS)
+	}
+
+	if cfg.Template == nil {
+		return nil, errors.New(NO_TEMPLATE)
+	}
+
 	cfg.setDefaults()
 
 	v = &Vite{
-		OutDir: cfg.OutDir,
-		data:   AssetsData{},
+		data: AssetsData{},
 	}
 
 	v.Env = cfg.Env
 	v.Platform = cfg.Platform
-	v.ProjectPath = cfg.ProjectDir
 	v.Template = cfg.Template
 
-	distFs, err := fs.Sub(cfg.FS, cfg.ProjectDir)
+	distFs, err := fs.Sub(cfg.RootFS, "static")
 
 	if err != nil {
 		return nil, err
@@ -56,18 +56,17 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 	if v.Env == "production" {
 		v.AssetsDir = cfg.AssetsDir
 
-		err := v.parseManifest(&v.DistFS, path.Join(cfg.OutDir, "manifest.json"))
+		err := v.parseManifest(&v.DistFS, "manifest.json")
 
 		if err != nil {
 			return nil, err
 		}
 
-		v.AssetsPath = path.Join(v.ProjectPath, v.OutDir, v.AssetsDir)
+		v.AssetsPath = path.Join("static", v.AssetsDir)
 	}
 
 	if v.Env == "development" {
 		v.SrcDir = cfg.SrcDir
-		v.AssetsPath = path.Join(v.ProjectPath, v.SrcDir)
 		v.DevServerURL = fmt.Sprintf("http://%v:%v", cfg.DevServerHost, cfg.DevServerPort)
 	}
 
