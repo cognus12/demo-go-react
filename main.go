@@ -2,10 +2,12 @@ package main
 
 import (
 	"demo-go-react/internal/app"
-	"demo-go-react/pkg/vite"
+
 	"embed"
 	"html/template"
 	"log"
+
+	vite "github.com/cognus12/go-embed-vite"
 )
 
 var index *template.Template

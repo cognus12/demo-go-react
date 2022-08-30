@@ -2,9 +2,11 @@ package app
 
 import (
 	"demo-go-react/internal/hello"
-	"demo-go-react/pkg/vite"
+
 	"log"
 	"net/http"
+
+	vite "github.com/cognus12/go-embed-vite"
 )
 
 func Run(cfg *vite.ViteConfig) {
