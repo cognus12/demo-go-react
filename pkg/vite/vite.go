@@ -31,6 +31,10 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 		return nil, errors.New(NO_ROOT_FS)
 	}
 
+	if cfg.Template == nil {
+		return nil, errors.New(NO_TEMPLATE)
+	}
+
 	cfg.setDefaults()
 
 	v = &Vite{

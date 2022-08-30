@@ -8,6 +8,8 @@ import (
 type ViteConfig struct {
 	// file system of project root (required)
 	RootFS fs.FS
+	// pointer to html template (required)
+	Template *template.Template
 	// name of frontend source folder (need for development mode, default - src)
 	SrcDir string
 	// production or development, default - production
@@ -22,8 +24,6 @@ type ViteConfig struct {
 	DevServerHost string
 	// port of dev server (default - 3000)
 	DevServerPort string
-	// pointer to html template
-	Template *template.Template
 }
 
 var defaults = map[string]string{

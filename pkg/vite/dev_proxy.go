@@ -7,7 +7,7 @@ import (
 	"net/url"
 )
 
-type DevProxy struct {
+type devProxy struct {
 	url string
 }
 
@@ -19,7 +19,7 @@ func copyHeader(dst, src http.Header) {
 	}
 }
 
-func (dp *DevProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (dp *devProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{}
 	r.RequestURI = ""
 	var err error
