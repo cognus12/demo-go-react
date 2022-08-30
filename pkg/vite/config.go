@@ -6,37 +6,35 @@ import (
 )
 
 type ViteConfig struct {
-	//
-	FS fs.FS
+	// file system of project root (required)
+	RootFS fs.FS
+	// name of frontend source folder (need for development mode, default - src)
+	SrcDir string
 	// production or development, default - production
 	Env string
 	// react, vue, svelte, default - react
 	Platform string
-	//
-	SrcDir string
-	//
+	// name of static assets folder (default - assets)
 	AssetsDir string
 	// AssetsURLPrefix (/assets/ for prod, /src/ for dev)
 	AssetsURLPrefix string
-	//
+	// host of dev server (default - localhost)
 	DevServerHost string
-	//
+	// port of dev server (default - 3000)
 	DevServerPort string
-	//
+	// pointer to html template
 	Template *template.Template
 }
 
 var defaults = map[string]string{
-	"Env":      "production",
-	"Platform": "react",
-	"SrcDir":   "src",
-
+	"Env":                 "production",
+	"Platform":            "react",
+	"SrcDir":              "src",
 	"AssetsURLPrefixProd": "/assets/",
 	"AssetsURLPrefixDev":  "/src/",
-
-	"AssetsDir":     "assets",
-	"DevServerHost": "localhost",
-	"DevServerPort": "3000",
+	"AssetsDir":           "assets",
+	"DevServerHost":       "localhost",
+	"DevServerPort":       "3000",
 }
 
 func (cfg *ViteConfig) setProdDefaults() {

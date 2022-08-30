@@ -14,7 +14,7 @@ var index *template.Template
 var fs embed.FS
 
 var Config = vite.ViteConfig{
-	FS: fs,
+	RootFS: fs,
 	// Env: "development",
 }
 

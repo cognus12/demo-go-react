@@ -1,6 +1,7 @@
 package vite
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -9,29 +10,27 @@ import (
 
 type AssetsData = map[string]any
 type Vite struct {
-	FS          fs.FS
-	DistFS      fs.FS
-	Env         string
-	Platform    string
-	ProjectPath string
-
+	RootFS          fs.FS
+	DistFS          fs.FS
+	Env             string
+	Platform        string
 	SrcDir          string
 	AssetsPath      string
 	AssetsDir       string
 	AssetsURLPrefix string
-
-	MainEntryPath string
-	DevServerURL  string
-
-	data    AssetsData
-	chuncks *[]AssetsData
-
-	Template *template.Template
+	Template        *template.Template
+	DevServerURL    string
+	data            AssetsData
+	chuncks         *[]AssetsData
 }
 
 var v *Vite
 
 func NewVite(cfg *ViteConfig) (*Vite, error) {
+	if cfg.RootFS == nil {
+		return nil, errors.New(NO_ROOT_FS)
+	}
+
 	cfg.setDefaults()
 
 	v = &Vite{
@@ -42,7 +41,7 @@ func NewVite(cfg *ViteConfig) (*Vite, error) {
 	v.Platform = cfg.Platform
 	v.Template = cfg.Template
 
-	distFs, err := fs.Sub(cfg.FS, "static")
+	distFs, err := fs.Sub(cfg.RootFS, "static")
 
 	if err != nil {
 		return nil, err
